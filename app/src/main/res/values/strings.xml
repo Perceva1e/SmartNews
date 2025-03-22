@@ -1,0 +1,21 @@
+<resources>
+    <string name="app_name">Smart News</string>
+    <string name="email">Email</string>
+    <string name="password">Password</string>
+    <string name="login">Login</string>
+    <string name="create_account">Create Account</string>
+    <string name="register">Register</string>
+    <string name="name">Name</string>
+    <string name="save">Save</string>
+    <string name="home">Home</string>
+    <string name="saved">Saved</string>
+    <string name="recommend">Recommend</string>
+    <string name="already_have_an_account_login">Already have an account? Login</string>
+    <string name="news_list_description">List of last news</string>
+    <string name="news_title_desc">News headline</string>
+    <string name="news_description_desc">Description of the news</string>
+    <string name="save_button_desc">Save news</string>
+    <string name="news_image_desc">Image news</string>
+    <string name="saved_news">Saved news</string>
+    <string name="no_saved_news">No news saved</string>
+</resources>
