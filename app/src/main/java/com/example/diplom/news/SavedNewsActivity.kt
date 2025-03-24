@@ -13,6 +13,7 @@ import com.example.diplom.database.AppDatabase
 import com.example.diplom.viewmodel.NewsViewModelFactory
 import com.example.diplom.api.NewsApi
 import com.example.diplom.news.adapter.SavedNewsAdapter
+import android.view.View
 
 class SavedNewsActivity : AppCompatActivity() {
     private lateinit var binding: ActivitySavedNewsBinding
@@ -42,8 +43,12 @@ class SavedNewsActivity : AppCompatActivity() {
         loadSavedNews()
     }
 
+
     private fun setupRecyclerView() {
-        adapter = SavedNewsAdapter()
+        adapter = SavedNewsAdapter { newsToDelete ->
+            viewModel.deleteNews(userId, newsToDelete)
+        }
+
         binding.rvSavedNews.apply {
             layoutManager = LinearLayoutManager(this@SavedNewsActivity)
             adapter = this@SavedNewsActivity.adapter
@@ -54,8 +59,10 @@ class SavedNewsActivity : AppCompatActivity() {
     private fun loadSavedNews() {
         viewModel.getSavedNews(userId).observe(this) { savedNews ->
             adapter.submitList(savedNews)
+            binding.emptyView.visibility = if (savedNews.isEmpty()) View.VISIBLE else View.GONE
         }
     }
+
     override fun onResume() {
         super.onResume()
         binding.bottomNavigation.selectedItemId = R.id.navigation_saved

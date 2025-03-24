@@ -74,12 +74,6 @@ class NewsViewModel(
         return savedNews
     }
 
-    private fun loadSavedNews(userId: Int) {
-        viewModelScope.launch {
-            _savedNews.value = repository.getSavedNews(userId)
-        }
-    }
-
     fun clearError() {
         _error.value = ""
     }
@@ -149,6 +143,23 @@ class NewsViewModel(
             _error.postValue("Showing popular news instead")
         } ?: run {
             _error.postValue("No recommendations available")
+        }
+    }
+
+    fun deleteNews(userId: Int, news: SavedNews) {
+        viewModelScope.launch {
+            try {
+                repository.deleteSavedNews(news)
+                loadSavedNews(userId)
+            } catch (e: Exception) {
+                _error.postValue("Delete failed: ${e.message}")
+            }
+        }
+    }
+
+    private fun loadSavedNews(userId: Int) {
+        viewModelScope.launch {
+            _savedNews.value = repository.getSavedNews(userId)
         }
     }
 }

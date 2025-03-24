@@ -10,9 +10,9 @@ import com.example.diplom.R
 import com.example.diplom.databinding.ItemSavedNewsBinding
 import com.example.diplom.database.entity.SavedNews
 
-class SavedNewsAdapter : ListAdapter<SavedNews, SavedNewsAdapter.SavedNewsViewHolder>(
-    SavedNewsDiffCallback()
-) {
+class SavedNewsAdapter(
+    private val onDeleteClick: (SavedNews) -> Unit
+) : ListAdapter<SavedNews, SavedNewsAdapter.SavedNewsViewHolder>(SavedNewsDiffCallback()) {
 
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): SavedNewsViewHolder {
         val binding = ItemSavedNewsBinding.inflate(
@@ -39,6 +39,11 @@ class SavedNewsAdapter : ListAdapter<SavedNews, SavedNewsAdapter.SavedNewsViewHo
                 .placeholder(R.drawable.placeholder_image)
                 .error(R.drawable.error_image)
                 .into(binding.ivSavedNewsImage)
+
+            // Обработчик удаления
+            binding.ibDelete.setOnClickListener {
+                onDeleteClick(news)
+            }
         }
     }
 

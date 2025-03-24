@@ -22,4 +22,5 @@
     <string name="no_title">No title available</string>
     <string name="no_description">No description available</string>
     <string name="no_news_available">No news available\nCheck your internet connection</string>
+    <string name="delete">Delete</string>
 </resources>

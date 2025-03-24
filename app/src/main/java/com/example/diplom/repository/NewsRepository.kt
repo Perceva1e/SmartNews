@@ -87,5 +87,7 @@ class NewsRepository(
             emptyList()
         }
     }
-
+    suspend fun deleteSavedNews(news: SavedNews) = withContext(Dispatchers.IO) {
+        newsDao.deleteNews(news.id)
+    }
 }
