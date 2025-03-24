@@ -12,12 +12,19 @@ android {
     }
     defaultConfig {
         applicationId = "com.example.diplom"
-        minSdk = 35
+        minSdk = 26
         targetSdk = 35
         versionCode = 1
         versionName = "1.0"
-
+        vectorDrawables.useSupportLibrary = true
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
+        javaCompileOptions {
+            annotationProcessorOptions {
+                arguments += mapOf(
+                    "room.schemaLocation" to "$projectDir/schemas".toString()
+                )
+            }
+        }
     }
 
     buildTypes {
@@ -79,4 +86,10 @@ dependencies {
 
     implementation (libs.glide)
     kapt (libs.compiler)
+
+    implementation(libs.dagger.hilt.android)
+    kapt (libs.hilt.compiler)
+    implementation (libs.androidx.lifecycle.runtime.ktx)
+    implementation (libs.material.v1110)
+    implementation (libs.androidx.constraintlayout.v220alpha13)
 }

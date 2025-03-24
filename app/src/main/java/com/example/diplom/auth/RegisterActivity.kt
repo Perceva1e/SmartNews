@@ -9,6 +9,7 @@ import com.example.diplom.databinding.ActivityRegisterBinding
 import com.example.diplom.database.entity.User
 import com.example.diplom.repository.NewsRepository
 import com.example.diplom.database.AppDatabase
+import com.example.diplom.news.MainActivity
 import com.example.diplom.utils.SecurityUtils
 import com.example.diplom.utils.showToast
 import com.example.diplom.viewmodel.AuthViewModelFactory
@@ -58,10 +59,18 @@ class RegisterActivity : AppCompatActivity() {
                             email = email,
                             password = SecurityUtils.sha256(password)
                         )
-                        viewModel.registerUser(user)
-                        showToast("Registration successful")
-                        startActivity(Intent(this@RegisterActivity, LoginActivity::class.java))
-                        finish()
+                        try {
+                            val userId = viewModel.registerUser(user)
+                            showToast("Registration successful")
+                            startActivity(
+                                Intent(this@RegisterActivity, MainActivity::class.java).apply {
+                                    putExtra("USER_ID", userId.toInt())
+                                }
+                            )
+                            finish()
+                        } catch (e: Exception) {
+                            showToast("Registration failed: ${e.message}")
+                        }
                     }
                 }
             }

@@ -1,5 +1,6 @@
 package com.example.diplom.news.adapter
 
+import android.graphics.drawable.Drawable
 import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
@@ -8,7 +9,11 @@ import androidx.recyclerview.widget.DiffUtil
 import androidx.recyclerview.widget.ListAdapter
 import androidx.recyclerview.widget.RecyclerView
 import com.bumptech.glide.Glide
+import com.bumptech.glide.load.DataSource
+import com.bumptech.glide.load.engine.GlideException
 import com.bumptech.glide.load.resource.drawable.DrawableTransitionOptions
+import com.bumptech.glide.request.RequestListener
+import com.bumptech.glide.request.target.Target
 import com.example.diplom.R
 import com.example.diplom.databinding.ItemNewsBinding
 import com.example.diplom.api.model.News
@@ -34,27 +39,58 @@ class NewsAdapter(
         RecyclerView.ViewHolder(binding.root) {
 
         fun bind(news: News) {
-            Log.d("ADAPTER", "Binding news: ${news.title}")
-            binding.tvTitle.text = news.title ?: "No title"
-            binding.tvDescription.text = news.description ?: "No description"
-            binding.btnSave.setOnClickListener { onSaveClick(news) }
-            Glide.with(binding.root.context)
-                .load(news.urlToImage)
-                .placeholder(R.drawable.placeholder_image)
-                .error(R.drawable.error_image)
-                .transition(DrawableTransitionOptions.withCrossFade())
-                .into(binding.ivNewsImage)
+            with(binding) {
+                Log.d("ADAPTER", "Binding news: ${news.title}")
 
-            binding.ivNewsImage.visibility =
-                if (news.urlToImage.isNullOrEmpty()) View.GONE else View.VISIBLE
+                tvTitle.text = news.title ?: root.context.getString(R.string.no_title)
+                tvDescription.text = news.description ?: root.context.getString(R.string.no_description)
+
+                news.urlToImage?.let { url ->
+                    Glide.with(root)
+                        .load(url)
+                        .transition(DrawableTransitionOptions.withCrossFade())
+                        .placeholder(R.drawable.placeholder_image)
+                        .error(R.drawable.error_image)
+                        .addListener(object : RequestListener<Drawable> {
+                            override fun onLoadFailed(
+                                e: GlideException?,
+                                model: Any?,
+                                target: Target<Drawable>,
+                                isFirstResource: Boolean
+                            ): Boolean {
+                                Log.e("GLIDE", "Image load failed: $url", e)
+                                ivNewsImage.visibility = View.GONE
+                                return false
+                            }
+
+                            override fun onResourceReady(
+                                resource: Drawable,
+                                model: Any,
+                                target: Target<Drawable>?,
+                                dataSource: DataSource,
+                                isFirstResource: Boolean
+                            ): Boolean {
+                                ivNewsImage.visibility = View.VISIBLE
+                                return false
+                            }
+                        })
+                        .into(ivNewsImage)
+                } ?: run {
+                    ivNewsImage.visibility = View.GONE
+                }
+
+                btnSave.setOnClickListener { onSaveClick(news) }
+            }
         }
     }
 
     class NewsDiffCallback : DiffUtil.ItemCallback<News>() {
-        override fun areItemsTheSame(oldItem: News, newItem: News) =
-            oldItem.url == newItem.url
+        override fun areItemsTheSame(oldItem: News, newItem: News): Boolean {
+            return oldItem.url == newItem.url
+        }
 
-        override fun areContentsTheSame(oldItem: News, newItem: News) =
-            oldItem == newItem
+        override fun areContentsTheSame(oldItem: News, newItem: News): Boolean {
+            return oldItem == newItem
+        }
     }
 }

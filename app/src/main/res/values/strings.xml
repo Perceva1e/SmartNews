@@ -18,4 +18,8 @@
     <string name="news_image_desc">Image news</string>
     <string name="saved_news">Saved news</string>
     <string name="no_saved_news">No news saved</string>
+    <string name="no_recommendations">Save at least 3 news to get recommendations</string>
+    <string name="no_title">No title available</string>
+    <string name="no_description">No description available</string>
+    <string name="no_news_available">No news available\nCheck your internet connection</string>
 </resources>

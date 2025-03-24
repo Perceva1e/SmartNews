@@ -8,8 +8,8 @@ import kotlinx.coroutines.launch
 
 class AuthViewModel(private val repository: NewsRepository) : ViewModel() {
 
-    fun registerUser(user: User) = viewModelScope.launch {
-        repository.registerUser(user)
+    suspend fun registerUser(user: User): Long {
+        return repository.registerUser(user)
     }
 
     suspend fun login(email: String, password: String): User? {

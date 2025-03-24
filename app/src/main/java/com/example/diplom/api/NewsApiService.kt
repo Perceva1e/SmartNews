@@ -8,6 +8,7 @@ interface NewsApiService {
     @GET("top-headlines")
     suspend fun getTopHeadlines(
         @Query("country") country: String = "us",
+        @Query("page") page: Int = 1,
         @Query("pageSize") pageSize: Int = 100,
         @Query("category") category: String? = null
     ): NewsResponse
@@ -18,4 +19,13 @@ interface NewsApiService {
         @Query("pageSize") pageSize: Int = 100,
         @Query("sortBy") sortBy: String = "publishedAt"
     ): NewsResponse
+
+    @GET("everything")
+    suspend fun searchRecommendedNews(
+        @Query("q") query: String,
+        @Query("pageSize") pageSize: Int = 100,
+        @Query("sortBy") sortBy: String = "relevancy",
+        @Query("language") language: String = "en"
+    ): NewsResponse
+
 }

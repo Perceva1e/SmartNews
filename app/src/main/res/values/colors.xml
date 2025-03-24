@@ -1,13 +1,25 @@
-<?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <!-- Основные цвета приложения -->
-    <color name="primary">#6200EE</color>
-    <color name="primaryDark">#3700B3</color>
-    <color name="accent">#03DAC5</color>
+    <!-- Основная палитра -->
+    <color name="primary">#6750A4</color>
+    <color name="primary_container">#EADDFF</color>
+    <color name="secondary">#625B71</color>
+    <color name="secondary_container">#E8DEF8</color>
 
-    <!-- Дополнительные цвета -->
-    <color name="white">#FFFFFF</color>
-    <color name="black">#000000</color>
+    <!-- Текст -->
+    <color name="on_primary">#FFFFFF</color>
+    <color name="on_secondary">#000000</color>
+
+    <!-- Фоны -->
+    <color name="background">#FFFBFE</color>
+    <color name="surface">#FFFBFE</color>
+
+    <!-- Ошибки -->
+    <color name="error">#B3261E</color>
+    <color name="error_container">#F9DEDC</color>
+
+    <!-- Дополнительные -->
+    <color name="outline">#79747E</color>
+
+    <color name="error_red">#B3261E</color>
     <color name="placeholder_grey">#BDBDBD</color>
-    <color name="error_red">#FF0000</color>
 </resources>

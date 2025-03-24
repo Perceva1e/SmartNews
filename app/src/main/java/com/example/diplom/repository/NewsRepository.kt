@@ -9,14 +9,15 @@ import com.example.diplom.database.entity.SavedNews
 import com.example.diplom.database.entity.User
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
+import java.io.IOException
+import java.net.UnknownHostException
 
 class NewsRepository(
     private val userDao: UserDao,
     private val newsDao: NewsDao,
     private val newsApi: NewsApiService
 ) {
-    // User operations
-    suspend fun registerUser(user: User) = withContext(Dispatchers.IO) {
+    suspend fun registerUser(user: User): Long = withContext(Dispatchers.IO) {
         userDao.insert(user)
     }
 
@@ -28,14 +29,16 @@ class NewsRepository(
         userDao.getUserByEmail(email) != null
     }
 
-    // News operations
     suspend fun getTopNews(): List<News> = withContext(Dispatchers.IO) {
         try {
             val response = newsApi.getTopHeadlines()
-            Log.d("API", "Received ${response.articles.size} news items")
+            Log.d("API_RESPONSE", "Received ${response.articles.size} items")
+            response.articles.forEach {
+                Log.d("NEWS_ITEM", "Title: ${it.title ?: "Untitled"}, URL: ${it.url}")
+            }
             response.articles
         } catch (e: Exception) {
-            Log.e("API", "Error fetching news: ${e.message}")
+            Log.e("API_ERROR", "Error: ${e.stackTraceToString()}")
             emptyList()
         }
     }
@@ -44,8 +47,11 @@ class NewsRepository(
         newsDao.saveNews(news)
     }
 
-    suspend fun getSavedNews(userId: Int): List<SavedNews> =
-        newsDao.getSavedNewsByUser(userId)
+    suspend fun getSavedNews(userId: Int): List<SavedNews> = withContext(Dispatchers.IO) {
+        newsDao.getSavedNewsByUser(userId).also {
+            Log.d("NewsRepository", "Saved news for user $userId: ${it.size}")
+        }
+    }
 
     suspend fun getUserByEmail(email: String): User? = withContext(Dispatchers.IO) {
         userDao.getUserByEmail(email)
@@ -62,4 +68,24 @@ class NewsRepository(
     suspend fun saveNewsForUser(news: SavedNews) = withContext(Dispatchers.IO) {
         newsDao.saveNews(news)
     }
+
+    suspend fun getAllNewsFromApi(): List<News> = withContext(Dispatchers.IO) {
+        try {
+            val response = newsApi.getTopHeadlines(pageSize = 50)
+            Log.d("NewsRepository", "Received ${response.articles.size} news")
+            response.articles
+        } catch (e: Exception) {
+            Log.e("NewsRepository", "API Error: ${e.message}")
+            emptyList()
+        }
+    }
+
+    suspend fun searchRecommendedNews(query: String): List<News> {
+        return try {
+            newsApi.searchRecommendedNews(query).articles
+        } catch (e: Exception) {
+            emptyList()
+        }
+    }
+
 }

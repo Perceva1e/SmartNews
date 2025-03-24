@@ -3,19 +3,21 @@ package com.example.diplom.news
 import android.content.Intent
 import android.os.Build
 import android.os.Bundle
+import android.view.View
 import androidx.activity.viewModels
 import androidx.appcompat.app.AppCompatActivity
 import androidx.recyclerview.widget.LinearLayoutManager
 import com.example.diplom.R
-import com.example.diplom.databinding.ActivitySavedNewsBinding
+import com.example.diplom.databinding.ActivityRecommendBinding
+import com.example.diplom.viewmodel.NewsViewModelFactory
 import com.example.diplom.repository.NewsRepository
 import com.example.diplom.database.AppDatabase
-import com.example.diplom.viewmodel.NewsViewModelFactory
 import com.example.diplom.api.NewsApi
-import com.example.diplom.news.adapter.SavedNewsAdapter
+import com.example.diplom.news.adapter.NewsAdapter
+import com.example.diplom.utils.showToast
 
-class SavedNewsActivity : AppCompatActivity() {
-    private lateinit var binding: ActivitySavedNewsBinding
+class RecommendActivity : AppCompatActivity() {
+    private lateinit var binding: ActivityRecommendBinding
     private val viewModel: NewsViewModel by viewModels {
         NewsViewModelFactory(
             NewsRepository(
@@ -26,43 +28,59 @@ class SavedNewsActivity : AppCompatActivity() {
         )
     }
 
-    private lateinit var adapter: SavedNewsAdapter
+    private lateinit var adapter: NewsAdapter
     private var userId: Int = -1
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        binding = ActivitySavedNewsBinding.inflate(layoutInflater)
+        binding = ActivityRecommendBinding.inflate(layoutInflater)
         setContentView(binding.root)
 
         userId = intent.getIntExtra("USER_ID", -1)
         if (userId == -1) finish()
-        binding.bottomNavigation.selectedItemId = R.id.navigation_saved
-        setupNavigation()
+
         setupRecyclerView()
-        loadSavedNews()
+        binding.bottomNavigation.selectedItemId = R.id.navigation_recommend
+        setupObservers()
+        setupNavigation()
+        viewModel.loadRecommendations(userId)
     }
 
     private fun setupRecyclerView() {
-        adapter = SavedNewsAdapter()
-        binding.rvSavedNews.apply {
-            layoutManager = LinearLayoutManager(this@SavedNewsActivity)
-            adapter = this@SavedNewsActivity.adapter
-            setHasFixedSize(true)
+        adapter = NewsAdapter { news ->
+            viewModel.saveNews(userId, news)
+        }
+        binding.rvRecommend.apply {
+            layoutManager = LinearLayoutManager(this@RecommendActivity)
+            adapter = this@RecommendActivity.adapter
         }
     }
 
-    private fun loadSavedNews() {
-        viewModel.getSavedNews(userId).observe(this) { savedNews ->
-            adapter.submitList(savedNews)
+    private fun setupObservers() {
+        viewModel.recommendations.observe(this) { news ->
+            if (news.isNullOrEmpty()) {
+                binding.emptyView.visibility = View.VISIBLE
+                binding.rvRecommend.visibility = View.GONE
+            } else {
+                binding.emptyView.visibility = View.GONE
+                binding.rvRecommend.visibility = View.VISIBLE
+                adapter.submitList(news)
+            }
+        }
+
+        viewModel.error.observe(this) { error ->
+            if (error.isNotBlank()) showToast(error)
         }
     }
+
     override fun onResume() {
         super.onResume()
-        binding.bottomNavigation.selectedItemId = R.id.navigation_saved
+        binding.bottomNavigation.selectedItemId = R.id.navigation_recommend
     }
+
     private fun setupNavigation() {
         binding.bottomNavigation.setOnItemSelectedListener { item ->
-            when(item.itemId) {
+            when (item.itemId) {
                 R.id.navigation_home -> {
                     startActivity(Intent(this, MainActivity::class.java).apply {
                         putExtra("USER_ID", userId)
@@ -72,16 +90,16 @@ class SavedNewsActivity : AppCompatActivity() {
                     true
                 }
 
-                R.id.navigation_saved -> true
-
-                R.id.navigation_recommend -> {
-                    startActivity(Intent(this, RecommendActivity::class.java).apply {
+                R.id.navigation_saved -> {
+                    startActivity(Intent(this, SavedNewsActivity::class.java).apply {
                         putExtra("USER_ID", userId)
                         addFlags(Intent.FLAG_ACTIVITY_SINGLE_TOP or Intent.FLAG_ACTIVITY_CLEAR_TOP)
                     })
                     applyTransition()
                     true
                 }
+
+                R.id.navigation_recommend -> true
 
                 else -> false
             }

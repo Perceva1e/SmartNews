@@ -1,4 +1,4 @@
-package com.diplom.smartnews
+package com.example.diplom
 
 import android.app.Application
 import com.example.diplom.database.AppDatabase
