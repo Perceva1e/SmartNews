@@ -13,6 +13,7 @@ import com.example.diplom.database.AppDatabase
 import com.example.diplom.databinding.ActivityMainBinding
 import com.example.diplom.news.adapter.NewsAdapter
 import com.example.diplom.repository.NewsRepository
+import com.example.diplom.utils.showToast
 import com.example.diplom.viewmodel.NewsViewModelFactory
 
 class MainActivity : AppCompatActivity() {
@@ -58,6 +59,7 @@ class MainActivity : AppCompatActivity() {
     private fun setupRecyclerView() {
         adapter = NewsAdapter { news ->
             viewModel.saveNews(userId, news)
+            showToast(getString(R.string.saved_news))
         }
 
         binding.rvNews.apply {

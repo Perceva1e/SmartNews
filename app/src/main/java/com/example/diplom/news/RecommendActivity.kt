@@ -36,23 +36,28 @@ class RecommendActivity : AppCompatActivity() {
         binding = ActivityRecommendBinding.inflate(layoutInflater)
         setContentView(binding.root)
 
-        userId = intent.getIntExtra("USER_ID", -1)
-        if (userId == -1) finish()
+        userId = intent.getIntExtra("USER_ID", -1).takeIf { it != -1 } ?: run {
+            finish()
+            return
+        }
 
         setupRecyclerView()
-        binding.bottomNavigation.selectedItemId = R.id.navigation_recommend
-        setupObservers()
         setupNavigation()
+        setupObservers()
         viewModel.loadRecommendations(userId)
     }
+
 
     private fun setupRecyclerView() {
         adapter = NewsAdapter { news ->
             viewModel.saveNews(userId, news)
+            showToast(getString(R.string.saved_news))
         }
+
         binding.rvRecommend.apply {
             layoutManager = LinearLayoutManager(this@RecommendActivity)
             adapter = this@RecommendActivity.adapter
+            setHasFixedSize(true)
         }
     }
 
@@ -69,7 +74,11 @@ class RecommendActivity : AppCompatActivity() {
         }
 
         viewModel.error.observe(this) { error ->
-            if (error.isNotBlank()) showToast(error)
+            if (error.isNotBlank()) {
+                binding.emptyView.text = error
+                binding.emptyView.visibility = View.VISIBLE
+                binding.rvRecommend.visibility = View.GONE
+            }
         }
     }
 

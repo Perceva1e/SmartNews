@@ -11,7 +11,9 @@ import com.example.diplom.database.entity.User
 import com.example.diplom.news.adapter.RecommendationEngine
 import com.example.diplom.repository.NewsRepository
 import com.example.diplom.utils.ResultState
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 import java.io.IOException
 
 class NewsViewModel(
@@ -36,6 +38,9 @@ class NewsViewModel(
 
     private val _user = MutableLiveData<User>()
     val user: LiveData<User> = _user
+
+    private val _loading = MutableLiveData<Boolean>()
+    val loading: LiveData<Boolean> = _loading
 
     init {
         loadNews()
@@ -62,14 +67,21 @@ class NewsViewModel(
 
     fun saveNews(userId: Int, news: News) {
         viewModelScope.launch {
-            val savedNews = SavedNews(
-                userId = userId,
-                title = news.title.toString(),
-                content = news.description ?: "",
-                url = news.url,
-                imageUrl = news.urlToImage
-            )
-            repository.saveNewsForUser(savedNews)
+            try {
+                val savedNews = SavedNews(
+                    userId = userId,
+                    title = news.title ?: "No title",
+                    content = news.description ?: "",
+                    url = news.url,
+                    imageUrl = news.urlToImage
+                )
+                repository.saveNewsForUser(savedNews)
+
+                loadSavedNews(userId)
+
+            } catch (e: Exception) {
+                _error.postValue("Save failed: ${e.message}")
+            }
         }
     }
 
@@ -83,12 +95,17 @@ class NewsViewModel(
     }
 
     fun loadRecommendations(userId: Int) {
-        viewModelScope.launch {
+        viewModelScope.launch(Dispatchers.Default) {
             try {
-                Log.d("Recommendations", "=== STARTING RECOMMENDATION PROCESS ===")
+                _loading.postValue(true)
 
-                val savedNews = repository.getSavedNews(userId).also {
-                    Log.d("Recommendations", "Saved news: ${it.size}")
+                recommendationEngine.getCachedRecommendations()?.let {
+                    _recommendations.postValue(it)
+                    return@launch
+                }
+
+                val savedNews = withContext(Dispatchers.IO) {
+                    repository.getSavedNews(userId)
                 }
 
                 if (savedNews.size < 3) {
@@ -96,51 +113,42 @@ class NewsViewModel(
                     return@launch
                 }
 
-                val keywords = recommendationEngine.extractKeywords(savedNews).also {
-                    Log.d("Recommendations", "Keywords: $it")
+                val keywords = recommendationEngine.extractKeywords(savedNews)
+                Log.d("Recommendations", "Keywords: $keywords")
+
+                val query = if (keywords.isNotEmpty()) {
+                    keywords.joinToString(" OR ") { "\"$it\"" }
+                } else {
+                    "news OR update OR world"
                 }
 
-                if (keywords.isEmpty()) {
-                    Log.w("Recommendations", "Fallback to popular news")
-                    showFallbackRecommendations()
-                    _error.postValue("Using popular news as recommendations")
-                    return@launch
+                val relevantNews = withContext(Dispatchers.IO) {
+                    repository.searchRecommendedNews(query)
                 }
 
-                val query = keywords.joinToString(" OR ") { "\"$it\"" }
-                    .takeIf { it.isNotBlank() }
-                    ?: run {
-                        Log.w("Recommendations", "Empty query generated")
-                        showFallbackRecommendations()
-                        return@launch
-                    }
+                val recommended = recommendationEngine.recommendNews(relevantNews, keywords)
+                recommendationEngine.updateCache(recommended)
 
-                val relevantNews = repository.searchRecommendedNews(query).also {
-                    Log.d("Recommendations", "Relevant news: ${it.size}")
-                }
-
-                if (relevantNews.isEmpty()) {
-                    _error.postValue("No relevant news found")
-                    return@launch
-                }
-
-                recommendationEngine.updateUserProfile(savedNews)
-                val recommended = recommendationEngine.recommendNews(relevantNews)
-
-                val savedUrls = savedNews.map { it.url.trim().lowercase() }.toSet()
-                val filtered = recommended.filterNot {
-                    savedUrls.contains(it.url.trim().lowercase())
-                }
-
-                _recommendations.postValue(filtered.take(10))
-
+                _recommendations.postValue(recommended)
             } catch (e: Exception) {
                 Log.e("Recommendations", "Error: ${e.stackTraceToString()}")
-                _error.postValue("Failed to load recommendations")
+                _error.postValue("Failed to load recommendations. Showing popular news.")
+                loadFallbackNews()
+            } finally {
+                _loading.postValue(false)
             }
         }
     }
-
+    private suspend fun loadFallbackNews() {
+        try {
+            val fallbackNews = withContext(Dispatchers.IO) {
+                repository.getTopNews()
+            }
+            _recommendations.postValue(fallbackNews.shuffled().take(10))
+        } catch (e: Exception) {
+            _error.postValue("No recommendations available")
+        }
+    }
     private fun showFallbackRecommendations() {
         _news.value?.let { currentNews ->
             _recommendations.postValue(currentNews.shuffled().take(10))
@@ -163,7 +171,7 @@ class NewsViewModel(
 
     private fun loadSavedNews(userId: Int) {
         viewModelScope.launch {
-            _savedNews.value = repository.getSavedNews(userId)
+            _savedNews.postValue(repository.getSavedNews(userId))
         }
     }
 

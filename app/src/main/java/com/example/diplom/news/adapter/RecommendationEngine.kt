@@ -1,163 +1,140 @@
 package com.example.diplom.news.adapter
 
-import android.util.Log
 import com.example.diplom.api.model.News
 import com.example.diplom.database.entity.SavedNews
-import kotlin.math.sqrt
-import java.util.*
+import java.text.SimpleDateFormat
+import java.util.Locale
 import kotlin.math.ln
 
 class RecommendationEngine {
-    private var userProfile: Map<String, Double> = emptyMap()
-    private val vectorCache = mutableMapOf<String, Map<String, Double>>()
     private val stemmer = PorterStemmer()
+    private val stopWords = setOf("the", "and", "or", "a", "an", "in", "on", "at", "to", "of", "for")
+    private var recommendationsCache: RecommendationCache? = null
 
-
-    private fun precomputeVectors(newsList: List<News>) {
-        newsList.forEach { news ->
-            if (!vectorCache.containsKey(news.url)) {
-                val text = news.title + " " + (news.description ?: "") + " " + (news.content ?: "")
-                vectorCache[news.url] = createTfIdfVector(text)
-            }
-        }
-    }
-
-
-    private class PorterStemmer {
-        fun stem(word: String): String {
-            var result = word
-                .removeSuffix("'s")
-                .removeSuffix("s")
-                .removeSuffix("ing")
-                .removeSuffix("ed")
-                .removeSuffix("ly")
-                .removeSuffix("er")
-                .removeSuffix("est")
-                .removeSuffix("tion")
-                .removeSuffix("ness")
-                .removeSuffix("ment")
-
-            result = when {
-                result.endsWith("ied") -> result.replace("ied", "y")
-                result.endsWith("ies") -> result.replace("ies", "y")
-                result.endsWith("ful") -> result.removeSuffix("ful")
-                result.endsWith("ize") -> result.removeSuffix("ize")
-                else -> result
-            }
-
-            return result.lowercase()
-        }
-    }
-
-    fun updateUserProfile(savedNews: List<SavedNews>) {
-        val allTexts = savedNews.joinToString(" ") { "${it.title} ${it.content}" }
-        userProfile = createTfIdfVector(allTexts)
-        Log.d("RecommendEngine", "User profile updated with ${savedNews.size} items")
-    }
-
-    fun extractKeywords(savedNews: List<SavedNews>, topN: Int = 5): List<String> {
-        val allText = savedNews.joinToString(" ") {
-            "${it.title} ${it.content}".trim().ifEmpty { "<empty>" }
-        }
-
-        Log.d("TextProcessing", "Raw text: ${allText.take(500)}")
-
-        val tfidf = createTfIdfVector(allText)
-        Log.d("Keywords", "TF-IDF entries: ${tfidf.entries.take(10)}")
-
-        return tfidf.entries
-            .sortedByDescending { it.value }
-            .take(topN * 5) // Увеличили охват
-            .map { it.key }
-            .filter { it.length > 3 } // Фильтр коротких слов
-            .take(topN)
-            .also {
-                Log.d("Keywords", "Final keywords: $it")
-            }
-    }
-
-    private fun createTfIdfVector(text: String): Map<String, Double> {
-        val words = preprocessText(text)
-        if (words.size < 5) {
-            Log.w("TextProcessing", "Insufficient words: ${words.size}")
-            return emptyMap()
-        }
-
-        val tf = calculateTf(words)
-        val idf = calculateIdf(tf)
-
-        return tf.mapValues { (term, tfValue) ->
-            tfValue * (idf[term] ?: 0.0)
-        }.filterValues { it > 0.0001 }
-    }
-
-    private fun preprocessText(text: String): List<String> {
-        return text.lowercase(Locale.getDefault())
-            .replace(Regex("[^a-zа-я ]"), " ")
-            .split(" ")
-            .filter {
-                it.length in 3..20 &&
-                        it !in stopWords &&
-                        !it.matches(Regex("\\d+"))
-            }
-            .map { stemmer.stem(it) }
+    fun extractKeywords(newsList: List<SavedNews>): List<String> {
+        val documents = newsList.map { "${it.title} ${it.content}" }
             .filter { it.isNotBlank() }
-            .also {
-                Log.d("TextProcessing", "After stemming: $it")
+            .takeIf { it.isNotEmpty() } ?: return emptyList()
+
+        val processedDocs = documents.map { preprocessText(it) }
+        val tokenizedDocs = processedDocs.map { tokenizeAndStem(it) }
+        val tfidfScores = calculateTFIDF(tokenizedDocs)
+
+        return tfidfScores.entries
+            .filter { it.value >= 0.15 && !stopWords.contains(it.key) }
+            .sortedByDescending { it.value }
+            .take(5)
+            .map { it.key }
+    }
+
+    private fun preprocessText(text: String): String {
+        return text.lowercase(Locale.getDefault())
+            .replace(Regex("[^a-zа-яё ]"), " ")
+            .replace(Regex("\\s+"), " ")
+            .trim()
+    }
+
+    private fun tokenizeAndStem(text: String): List<String> {
+        return text.split(" ")
+            .map { stemmer.stem(it) }
+            .filter { it.length > 2 && !stopWords.contains(it) }
+    }
+
+    private fun calculateTFIDF(documents: List<List<String>>): Map<String, Double> {
+        val tf = mutableMapOf<String, MutableMap<String, Int>>()
+        val df = mutableMapOf<String, Int>()
+        val totalDocs = documents.size
+
+        // Calculate Term Frequency (TF)
+        documents.forEachIndexed { docId, terms ->
+            val termCount = mutableMapOf<String, Int>()
+            terms.forEach { term ->
+                termCount[term] = termCount.getOrDefault(term, 0) + 1
             }
-    }
+            tf[docId.toString()] = termCount
 
+            terms.toSet().forEach { term ->
+                df[term] = df.getOrDefault(term, 0) + 1
+            }
+        }
 
-    private fun calculateTf(words: List<String>): Map<String, Double> {
-        val total = words.size.toDouble()
-        return words.groupingBy { it }.eachCount()
-            .mapValues { it.value.toDouble() / total }
-    }
-
-    private fun calculateIdf(tf: Map<String, Double>): Map<String, Double> {
-        val totalDocs = vectorCache.size + 1
-        return tf.mapValues { (term, _) ->
-            val docsWithTerm = vectorCache.values.count { it.containsKey(term) }
-            val idf = ln(totalDocs.toDouble() / (docsWithTerm + 1))
-            Log.d("TFIDF", "Term: $term, IDF: $idf")
-            idf
+        // Calculate TF-IDF scores
+        return df.keys.associateWith { term ->
+            val termFrequency = tf.values.sumOf { it.getOrDefault(term, 0).toDouble() }
+            val docFrequency = df[term]?.toDouble() ?: 0.0
+            val idf = ln((totalDocs + 1) / (docFrequency + 1)) + 1
+            termFrequency * idf
         }
     }
 
-    fun recommendNews(allNews: List<News>): List<News> {
-        precomputeVectors(allNews)
+    fun recommendNews(articles: List<News>, keywords: List<String>): List<News> {
+        val now = System.currentTimeMillis()
+        return articles.distinctBy { it.url }
+            .sortedByDescending { article ->
+                val titleScore = calculateRelevance(article.title ?: "", keywords)
+                val contentScore = calculateRelevance(article.description ?: "", keywords)
+                val freshness = 1 - (now - parseDate(article.publishedAt)) / 3_600_000.0
 
-        return allNews.mapNotNull { news ->
-            val newsVector = vectorCache[news.url] ?: return@mapNotNull null
-            val similarity = cosineSimilarity(userProfile, newsVector)
-            news to similarity
-        }.sortedByDescending { it.second }
-            .filter { it.second > 0.1 }
-            .map { it.first }
+                0.4 * titleScore + 0.3 * contentScore + 0.3 * freshness
+            }
+            .take(10)
     }
 
-    private fun cosineSimilarity(vec1: Map<String, Double>, vec2: Map<String, Double>): Double {
-        val terms = (vec1.keys + vec2.keys).toSet()
-        var dot = 0.0
-        var norm1 = 0.0
-        var norm2 = 0.0
-
-        terms.forEach { term ->
-            val v1 = vec1[term] ?: 0.0
-            val v2 = vec2[term] ?: 0.0
-            dot += v1 * v2
-            norm1 += v1 * v1
-            norm2 += v2 * v2
+    private fun calculateRelevance(text: String, keywords: List<String>): Double {
+        val processed = preprocessText(text)
+        val terms = tokenizeAndStem(processed)
+        return keywords.sumOf { keyword ->
+            terms.count { it == keyword }.toDouble()
         }
-
-        return if (norm1 == 0.0 || norm2 == 0.0) 0.0
-        else dot / (sqrt(norm1) * sqrt(norm2))
     }
 
-    companion object {
-        private val stopWords = setOf(
-            "a", "an", "the", "in", "on", "at", "to", "for", "of", "and", "or", "but",
-            "is", "are", "was", "were", "this", "that", "it", "as", "with", "by", "from"
+    private fun parseDate(dateString: String): Long {
+        return try {
+            SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss'Z'", Locale.getDefault())
+                .parse(dateString)?.time ?: 0L
+        } catch (e: Exception) {
+            0L
+        }
+    }
+
+    fun updateCache(data: List<News>) {
+        recommendationsCache = RecommendationCache(
+            data = data,
+            timestamp = System.currentTimeMillis()
         )
     }
+
+    fun getCachedRecommendations(): List<News>? {
+        return recommendationsCache?.takeIf {
+            System.currentTimeMillis() - it.timestamp < 600_000 // 10 минут
+        }?.data
+    }
+
+    private data class RecommendationCache(
+        val data: List<News>,
+        val timestamp: Long
+    )
+}
+
+// Porter Stemmer implementation (часть класса)
+private class PorterStemmer {
+    fun stem(term: String): String {
+        var stem = term
+        if (stem.length > 3) {
+            stem = removeSuffixes(stem)
+        }
+        return stem
+    }
+}
+
+private fun removeSuffixes(word: String): String {
+    val suffixes = listOf("ing", "ed", "ly", "es", "s")
+    var result = word
+    for (suffix in suffixes) {
+        if (result.endsWith(suffix)) {
+            result = result.substring(0, result.length - suffix.length)
+            break
+        }
+    }
+    return result
 }
