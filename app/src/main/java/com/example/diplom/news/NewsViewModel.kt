@@ -7,6 +7,7 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.example.diplom.api.model.News
 import com.example.diplom.database.entity.SavedNews
+import com.example.diplom.database.entity.User
 import com.example.diplom.news.adapter.RecommendationEngine
 import com.example.diplom.repository.NewsRepository
 import com.example.diplom.utils.ResultState
@@ -32,6 +33,9 @@ class NewsViewModel(
 
     private val _news = MutableLiveData<List<News>>()
     val news: LiveData<List<News>> = _news
+
+    private val _user = MutableLiveData<User>()
+    val user: LiveData<User> = _user
 
     init {
         loadNews()
@@ -160,6 +164,29 @@ class NewsViewModel(
     private fun loadSavedNews(userId: Int) {
         viewModelScope.launch {
             _savedNews.value = repository.getSavedNews(userId)
+        }
+    }
+
+    suspend fun getUser(userId: Int): User? {
+        return repository.getUserById(userId)
+    }
+
+    fun updateUser(userId: Int, name: String, email: String) {
+        viewModelScope.launch {
+            repository.updateUser(userId, name, email)
+        }
+    }
+
+    fun deleteUser(userId: Int) {
+        viewModelScope.launch {
+            repository.deleteUser(userId)
+        }
+    }
+    fun loadUser(userId: Int) {
+        viewModelScope.launch {
+            repository.getUser(userId).collect { user ->
+                _user.value = user
+            }
         }
     }
 }

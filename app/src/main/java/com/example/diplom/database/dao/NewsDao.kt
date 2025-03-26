@@ -4,7 +4,6 @@ import androidx.room.Dao
 import androidx.room.Insert
 import androidx.room.Query
 import com.example.diplom.database.entity.SavedNews
-import kotlinx.coroutines.flow.Flow
 
 @Dao
 interface NewsDao {
@@ -16,4 +15,7 @@ interface NewsDao {
 
     @Query("DELETE FROM saved_news WHERE id = :newsId")
     suspend fun deleteNews(newsId: Int)
+
+    @Query("DELETE FROM saved_news WHERE user_id = :userId")
+    suspend fun deleteAllUserNews(userId: Int)
 }

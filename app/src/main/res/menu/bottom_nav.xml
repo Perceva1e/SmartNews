@@ -14,4 +14,8 @@
         android:id="@+id/navigation_recommend"
         android:icon="@drawable/ic_recommend"
         android:title="@string/recommend"/>
+    <item
+        android:id="@+id/navigation_profile"
+        android:title="@string/profile"
+        android:icon="@drawable/ic_profile"/>
 </menu>

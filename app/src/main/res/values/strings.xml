@@ -23,4 +23,7 @@
     <string name="no_description">No description available</string>
     <string name="no_news_available">No news available\nCheck your internet connection</string>
     <string name="delete">Delete</string>
+    <string name="profile">Profile</string>
+    <string name="delete_account">Delete Account</string>
+    <string name="save_changes">Save Changes</string>
 </resources>

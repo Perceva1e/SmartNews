@@ -3,17 +3,17 @@ package com.example.diplom.news
 import android.content.Intent
 import android.os.Build
 import android.os.Bundle
+import android.view.View
 import androidx.activity.viewModels
 import androidx.appcompat.app.AppCompatActivity
 import androidx.recyclerview.widget.LinearLayoutManager
 import com.example.diplom.R
-import com.example.diplom.databinding.ActivitySavedNewsBinding
-import com.example.diplom.repository.NewsRepository
-import com.example.diplom.database.AppDatabase
-import com.example.diplom.viewmodel.NewsViewModelFactory
 import com.example.diplom.api.NewsApi
+import com.example.diplom.database.AppDatabase
+import com.example.diplom.databinding.ActivitySavedNewsBinding
 import com.example.diplom.news.adapter.SavedNewsAdapter
-import android.view.View
+import com.example.diplom.repository.NewsRepository
+import com.example.diplom.viewmodel.NewsViewModelFactory
 
 class SavedNewsActivity : AppCompatActivity() {
     private lateinit var binding: ActivitySavedNewsBinding
@@ -67,29 +67,41 @@ class SavedNewsActivity : AppCompatActivity() {
         super.onResume()
         binding.bottomNavigation.selectedItemId = R.id.navigation_saved
     }
+
     private fun setupNavigation() {
         binding.bottomNavigation.setOnItemSelectedListener { item ->
+            if (item.itemId == binding.bottomNavigation.selectedItemId) {
+                return@setOnItemSelectedListener false
+            }
+
             when(item.itemId) {
                 R.id.navigation_home -> {
                     startActivity(Intent(this, MainActivity::class.java).apply {
                         putExtra("USER_ID", userId)
-                        flags = Intent.FLAG_ACTIVITY_CLEAR_TOP or Intent.FLAG_ACTIVITY_SINGLE_TOP
-                    })
-                    finish()
-                    true
-                }
-
-                R.id.navigation_saved -> true
-
-                R.id.navigation_recommend -> {
-                    startActivity(Intent(this, RecommendActivity::class.java).apply {
-                        putExtra("USER_ID", userId)
-                        addFlags(Intent.FLAG_ACTIVITY_SINGLE_TOP or Intent.FLAG_ACTIVITY_CLEAR_TOP)
+                        addFlags(Intent.FLAG_ACTIVITY_REORDER_TO_FRONT)
                     })
                     applyTransition()
                     true
                 }
-
+                R.id.navigation_saved -> true
+                R.id.navigation_recommend -> {
+                    startActivity(Intent(this, RecommendActivity::class.java).apply {
+                        putExtra("USER_ID", userId)
+                        addFlags(Intent.FLAG_ACTIVITY_REORDER_TO_FRONT)
+                    })
+                    applyTransition()
+                    true
+                }
+                R.id.navigation_profile -> {
+                    startActivity(
+                        Intent(this, ProfileActivity::class.java).apply {
+                            putExtra("USER_ID", userId)
+                            addFlags(Intent.FLAG_ACTIVITY_REORDER_TO_FRONT)
+                        }
+                    )
+                    applyTransition()
+                    true
+                }
                 else -> false
             }
         }

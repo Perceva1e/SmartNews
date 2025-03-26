@@ -8,9 +8,8 @@ import com.example.diplom.database.dao.UserDao
 import com.example.diplom.database.entity.SavedNews
 import com.example.diplom.database.entity.User
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.withContext
-import java.io.IOException
-import java.net.UnknownHostException
 
 class NewsRepository(
     private val userDao: UserDao,
@@ -90,4 +89,17 @@ class NewsRepository(
     suspend fun deleteSavedNews(news: SavedNews) = withContext(Dispatchers.IO) {
         newsDao.deleteNews(news.id)
     }
+    suspend fun getUserById(userId: Int): User? = withContext(Dispatchers.IO) {
+        userDao.getUserById(userId)
+    }
+
+    suspend fun updateUser(userId: Int, name: String, email: String) = withContext(Dispatchers.IO) {
+        userDao.updateUser(userId, name, email)
+    }
+
+    suspend fun deleteUser(userId: Int) = withContext(Dispatchers.IO) {
+        userDao.deleteUser(userId)
+        newsDao.deleteAllUserNews(userId)
+    }
+    fun getUser(userId: Int): Flow<User> = userDao.getUser(userId)
 }
