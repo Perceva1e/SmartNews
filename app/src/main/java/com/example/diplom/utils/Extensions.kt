@@ -22,6 +22,7 @@ fun Context.showToast(message: String, duration: Int = Toast.LENGTH_SHORT) {
 fun <T> kotlinx.coroutines.flow.Flow<T>.asLiveData() = this.asLiveData(
     kotlinx.coroutines.Dispatchers.Default
 )
+
 fun isValidEmail(email: String): Boolean {
     return Patterns.EMAIL_ADDRESS.matcher(email).matches()
 }

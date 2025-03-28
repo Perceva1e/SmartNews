@@ -45,7 +45,6 @@ class RecommendationEngine {
         val df = mutableMapOf<String, Int>()
         val totalDocs = documents.size
 
-        // Calculate Term Frequency (TF)
         documents.forEachIndexed { docId, terms ->
             val termCount = mutableMapOf<String, Int>()
             terms.forEach { term ->
@@ -58,7 +57,6 @@ class RecommendationEngine {
             }
         }
 
-        // Calculate TF-IDF scores
         return df.keys.associateWith { term ->
             val termFrequency = tf.values.sumOf { it.getOrDefault(term, 0).toDouble() }
             val docFrequency = df[term]?.toDouble() ?: 0.0
@@ -92,7 +90,7 @@ class RecommendationEngine {
         return try {
             SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss'Z'", Locale.getDefault())
                 .parse(dateString)?.time ?: 0L
-        } catch (e: Exception) {
+        } catch (_: Exception) {
             0L
         }
     }
@@ -106,7 +104,7 @@ class RecommendationEngine {
 
     fun getCachedRecommendations(): List<News>? {
         return recommendationsCache?.takeIf {
-            System.currentTimeMillis() - it.timestamp < 600_000 // 10 минут
+            System.currentTimeMillis() - it.timestamp < 600_000
         }?.data
     }
 
@@ -116,7 +114,6 @@ class RecommendationEngine {
     )
 }
 
-// Porter Stemmer implementation (часть класса)
 private class PorterStemmer {
     fun stem(term: String): String {
         var stem = term

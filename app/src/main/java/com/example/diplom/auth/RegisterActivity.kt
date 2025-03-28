@@ -92,13 +92,13 @@ class RegisterActivity : AppCompatActivity() {
                                                 )
                                                 val userId = viewModel.registerUser(localUser)
                                                 startEmailVerificationActivity(userId.toInt(), email)
-                                            } catch (e: Exception) {
+                                            } catch (_: Exception) {
                                                 firebaseUser.delete()
                                                 showToast(getString(R.string.error_registration_failed))
                                             }
                                         }
                                     } else {
-                                        firebaseUser?.delete()
+                                        firebaseUser.delete()
                                         showToast(getString(R.string.error_profile_update))
                                     }
                                 }
@@ -106,7 +106,7 @@ class RegisterActivity : AppCompatActivity() {
                             showToast(getString(R.string.error_registration_failed))
                         }
                     }
-            } catch (e: Exception) {
+            } catch (_: Exception) {
                 showToast(getString(R.string.error_general))
             }
         }

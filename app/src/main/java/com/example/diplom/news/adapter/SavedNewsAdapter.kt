@@ -7,8 +7,8 @@ import androidx.recyclerview.widget.ListAdapter
 import androidx.recyclerview.widget.RecyclerView
 import com.bumptech.glide.Glide
 import com.example.diplom.R
-import com.example.diplom.databinding.ItemSavedNewsBinding
 import com.example.diplom.database.entity.SavedNews
+import com.example.diplom.databinding.ItemSavedNewsBinding
 
 class SavedNewsAdapter(
     private val onDeleteClick: (SavedNews) -> Unit
@@ -40,7 +40,6 @@ class SavedNewsAdapter(
                 .error(R.drawable.error_image)
                 .into(binding.ivSavedNewsImage)
 
-            // Обработчик удаления
             binding.ibDelete.setOnClickListener {
                 onDeleteClick(news)
             }

@@ -24,10 +24,6 @@ class NewsRepository(
         userDao.getUserByEmail(email)?.takeIf { it.password == password }
     }
 
-    suspend fun isEmailExists(email: String): Boolean = withContext(Dispatchers.IO) {
-        userDao.getUserByEmail(email) != null
-    }
-
     suspend fun getTopNews(): List<News> = withContext(Dispatchers.IO) {
         try {
             val response = newsApi.getTopHeadlines()
@@ -42,10 +38,6 @@ class NewsRepository(
         }
     }
 
-    suspend fun saveNews(news: SavedNews) = withContext(Dispatchers.IO) {
-        newsDao.saveNews(news)
-    }
-
     suspend fun getSavedNews(userId: Int): List<SavedNews> = withContext(Dispatchers.IO) {
         newsDao.getSavedNewsByUser(userId).also {
             Log.d("NewsRepository", "Saved news for user $userId: ${it.size}")
@@ -56,43 +48,20 @@ class NewsRepository(
         return userDao.getUserByEmailFlow(email)
     }
 
-    suspend fun getNewsFromApi(): List<News> = withContext(Dispatchers.IO) {
-        try {
-            newsApi.getTopHeadlines().articles
-        } catch (e: Exception) {
-            emptyList()
-        }
-    }
-
     suspend fun saveNewsForUser(news: SavedNews) = withContext(Dispatchers.IO) {
         newsDao.saveNews(news)
-    }
-
-    suspend fun getAllNewsFromApi(): List<News> = withContext(Dispatchers.IO) {
-        try {
-            val response = newsApi.getTopHeadlines(pageSize = 50)
-            Log.d("NewsRepository", "Received ${response.articles.size} news")
-            response.articles
-        } catch (e: Exception) {
-            Log.e("NewsRepository", "API Error: ${e.message}")
-            emptyList()
-        }
     }
 
     suspend fun searchRecommendedNews(query: String): List<News> {
         return try {
             newsApi.searchRecommendedNews(query).articles
-        } catch (e: Exception) {
+        } catch (_: Exception) {
             emptyList()
         }
     }
 
     suspend fun deleteSavedNews(news: SavedNews) = withContext(Dispatchers.IO) {
         newsDao.deleteNews(news.id)
-    }
-
-    suspend fun getUserById(userId: Int): User? = withContext(Dispatchers.IO) {
-        userDao.getUserById(userId)
     }
 
     suspend fun updateUser(userId: Int, name: String, email: String) = withContext(Dispatchers.IO) {
@@ -107,10 +76,6 @@ class NewsRepository(
     }
 
     fun getUser(userId: Int): Flow<User> = userDao.getUser(userId)
-
-    fun getUserByEmailFlow(email: String): Flow<User?> {
-        return userDao.getUserByEmailFlow(email)
-    }
 
     suspend fun checkUserExists(email: String): Boolean {
         return userDao.checkUserExists(email)

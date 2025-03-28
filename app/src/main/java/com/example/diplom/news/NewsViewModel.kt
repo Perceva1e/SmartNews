@@ -27,7 +27,6 @@ class NewsViewModel(
     val recommendations: LiveData<List<News>> = _recommendations
 
     private val _newsState = MutableLiveData<ResultState<List<News>>>()
-    val newsState: LiveData<ResultState<List<News>>> = _newsState
 
     private val _savedNews = MutableLiveData<List<SavedNews>>()
     val savedNews: LiveData<List<SavedNews>> = _savedNews
@@ -42,10 +41,8 @@ class NewsViewModel(
     val user: LiveData<User> = _user
 
     private val _loading = MutableLiveData<Boolean>()
-    val loading: LiveData<Boolean> = _loading
 
     private val _navigationEvent = MutableLiveData<Event<NavigationEvent>>()
-    val navigationEvent: LiveData<Event<NavigationEvent>> = _navigationEvent
 
     sealed class NavigationEvent {
         object Logout : NavigationEvent()
@@ -80,7 +77,7 @@ class NewsViewModel(
                     _newsState.postValue(ResultState.Success(news))
                     _news.postValue(news)
                 }
-            } catch (e: IOException) {
+            } catch (_: IOException) {
                 _newsState.postValue(ResultState.Error("Check internet connection"))
             } catch (e: Exception) {
                 _newsState.postValue(ResultState.Error("Error: ${e.message}"))
@@ -111,10 +108,6 @@ class NewsViewModel(
     fun getSavedNews(userId: Int): LiveData<List<SavedNews>> {
         loadSavedNews(userId)
         return savedNews
-    }
-
-    fun clearError() {
-        _error.value = ""
     }
 
     fun loadRecommendations(userId: Int) {
@@ -162,21 +155,14 @@ class NewsViewModel(
             }
         }
     }
+
     private suspend fun loadFallbackNews() {
         try {
             val fallbackNews = withContext(Dispatchers.IO) {
                 repository.getTopNews()
             }
             _recommendations.postValue(fallbackNews.shuffled().take(10))
-        } catch (e: Exception) {
-            _error.postValue("No recommendations available")
-        }
-    }
-    private fun showFallbackRecommendations() {
-        _news.value?.let { currentNews ->
-            _recommendations.postValue(currentNews.shuffled().take(10))
-            _error.postValue("Showing popular news instead")
-        } ?: run {
+        } catch (_: Exception) {
             _error.postValue("No recommendations available")
         }
     }
@@ -196,10 +182,6 @@ class NewsViewModel(
         viewModelScope.launch {
             _savedNews.postValue(repository.getSavedNews(userId))
         }
-    }
-
-    suspend fun getUser(userId: Int): User? {
-        return repository.getUserById(userId)
     }
 
     fun updateUser(userId: Int, name: String, email: String) {
@@ -228,14 +210,10 @@ class NewsViewModel(
         }
     }
 
-    fun refreshSavedNews(userId: Int) {
-        viewModelScope.launch {
-            _savedNews.postValue(repository.getSavedNews(userId))
-        }
-    }
     fun getUserByEmail(email: String): Flow<User?> {
         return repository.getUserByEmail(email)
     }
+
     fun updateLocalPassword(email: String, newHashedPassword: String) {
         viewModelScope.launch {
             try {

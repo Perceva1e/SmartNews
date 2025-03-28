@@ -14,13 +14,6 @@ interface NewsApiService {
     ): NewsResponse
 
     @GET("everything")
-    suspend fun searchNews(
-        @Query("q") query: String,
-        @Query("pageSize") pageSize: Int = 100,
-        @Query("sortBy") sortBy: String = "publishedAt"
-    ): NewsResponse
-
-    @GET("everything")
     suspend fun searchRecommendedNews(
         @Query("q") query: String,
         @Query("pageSize") pageSize: Int = 100,

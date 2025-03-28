@@ -9,9 +9,4 @@ data class News(
     val url: String,
     val publishedAt: String,
     val content: String?
-) {
-    data class Source(
-        val id: String?,
-        val name: String
-    )
-}
+)
