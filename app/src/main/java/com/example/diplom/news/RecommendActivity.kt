@@ -13,6 +13,7 @@ import com.example.diplom.database.AppDatabase
 import com.example.diplom.databinding.ActivityRecommendBinding
 import com.example.diplom.news.adapter.NewsAdapter
 import com.example.diplom.repository.NewsRepository
+import com.example.diplom.utils.AppEvents
 import com.example.diplom.utils.showToast
 import com.example.diplom.viewmodel.NewsViewModelFactory
 
@@ -51,6 +52,7 @@ class RecommendActivity : AppCompatActivity() {
     private fun setupRecyclerView() {
         adapter = NewsAdapter { news ->
             viewModel.saveNews(userId, news)
+            AppEvents.notifyNewsChanged(userId, "SAVE")
             showToast(getString(R.string.saved_news))
         }
 

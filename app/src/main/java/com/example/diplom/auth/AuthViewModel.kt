@@ -1,10 +1,9 @@
 package com.example.diplom.auth
 
 import androidx.lifecycle.ViewModel
-import androidx.lifecycle.viewModelScope
 import com.example.diplom.database.entity.User
 import com.example.diplom.repository.NewsRepository
-import kotlinx.coroutines.launch
+import kotlinx.coroutines.flow.Flow
 
 class AuthViewModel(private val repository: NewsRepository) : ViewModel() {
 
@@ -17,6 +16,10 @@ class AuthViewModel(private val repository: NewsRepository) : ViewModel() {
     }
 
     suspend fun isUserExists(email: String): Boolean {
-        return repository.getUserByEmail(email) != null
+        return repository.checkUserExists(email)
+    }
+
+    fun getUserByEmailFlow(email: String): Flow<User?> {
+        return repository.getUserByEmailFlow(email)
     }
 }

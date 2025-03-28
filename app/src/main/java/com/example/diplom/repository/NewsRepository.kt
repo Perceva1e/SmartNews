@@ -52,8 +52,8 @@ class NewsRepository(
         }
     }
 
-    suspend fun getUserByEmail(email: String): User? = withContext(Dispatchers.IO) {
-        userDao.getUserByEmail(email)
+    fun getUserByEmail(email: String): Flow<User?> {
+        return userDao.getUserByEmailFlow(email)
     }
 
     suspend fun getNewsFromApi(): List<News> = withContext(Dispatchers.IO) {
@@ -86,9 +86,11 @@ class NewsRepository(
             emptyList()
         }
     }
+
     suspend fun deleteSavedNews(news: SavedNews) = withContext(Dispatchers.IO) {
         newsDao.deleteNews(news.id)
     }
+
     suspend fun getUserById(userId: Int): User? = withContext(Dispatchers.IO) {
         userDao.getUserById(userId)
     }
@@ -97,9 +99,29 @@ class NewsRepository(
         userDao.updateUser(userId, name, email)
     }
 
-    suspend fun deleteUser(userId: Int) = withContext(Dispatchers.IO) {
-        userDao.deleteUser(userId)
-        newsDao.deleteAllUserNews(userId)
+    suspend fun deleteUser(userId: Int) {
+        withContext(Dispatchers.IO) {
+            userDao.deleteUser(userId)
+            newsDao.deleteAllUserNews(userId)
+        }
     }
+
     fun getUser(userId: Int): Flow<User> = userDao.getUser(userId)
+
+    fun getUserByEmailFlow(email: String): Flow<User?> {
+        return userDao.getUserByEmailFlow(email)
+    }
+
+    suspend fun checkUserExists(email: String): Boolean {
+        return userDao.checkUserExists(email)
+    }
+
+    suspend fun updateUserPassword(email: String, newHashedPassword: String) {
+        try {
+            val rowsUpdated = userDao.updatePassword(email, newHashedPassword)
+            if (rowsUpdated == 0) throw Exception("User not found")
+        } catch (e: Exception) {
+            throw Exception("Database error: ${e.message}")
+        }
+    }
 }

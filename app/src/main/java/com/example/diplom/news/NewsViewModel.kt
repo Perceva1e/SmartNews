@@ -11,7 +11,9 @@ import com.example.diplom.database.entity.User
 import com.example.diplom.news.adapter.RecommendationEngine
 import com.example.diplom.repository.NewsRepository
 import com.example.diplom.utils.ResultState
+import com.google.firebase.auth.FirebaseAuth
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import java.io.IOException
@@ -41,6 +43,27 @@ class NewsViewModel(
 
     private val _loading = MutableLiveData<Boolean>()
     val loading: LiveData<Boolean> = _loading
+
+    private val _navigationEvent = MutableLiveData<Event<NavigationEvent>>()
+    val navigationEvent: LiveData<Event<NavigationEvent>> = _navigationEvent
+
+    sealed class NavigationEvent {
+        object Logout : NavigationEvent()
+    }
+
+    class Event<T>(private val content: T) {
+        var hasBeenHandled = false
+            private set
+
+        fun getContentIfNotHandled(): T? {
+            return if (hasBeenHandled) {
+                null
+            } else {
+                hasBeenHandled = true
+                content
+            }
+        }
+    }
 
     init {
         loadNews()
@@ -187,9 +210,16 @@ class NewsViewModel(
 
     fun deleteUser(userId: Int) {
         viewModelScope.launch {
-            repository.deleteUser(userId)
+            try {
+                FirebaseAuth.getInstance().currentUser?.delete()
+                repository.deleteUser(userId)
+                _navigationEvent.postValue(Event(NavigationEvent.Logout))
+            } catch (e: Exception) {
+                _error.postValue("Deletion error: ${e.message}")
+            }
         }
     }
+
     fun loadUser(userId: Int) {
         viewModelScope.launch {
             repository.getUser(userId).collect { user ->
@@ -197,4 +227,23 @@ class NewsViewModel(
             }
         }
     }
+
+    fun refreshSavedNews(userId: Int) {
+        viewModelScope.launch {
+            _savedNews.postValue(repository.getSavedNews(userId))
+        }
+    }
+    fun getUserByEmail(email: String): Flow<User?> {
+        return repository.getUserByEmail(email)
+    }
+    fun updateLocalPassword(email: String, newHashedPassword: String) {
+        viewModelScope.launch {
+            try {
+                repository.updateUserPassword(email, newHashedPassword)
+            } catch (e: Exception) {
+                _error.postValue("Password update error: ${e.message}")
+            }
+        }
+    }
+
 }

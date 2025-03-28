@@ -15,7 +15,7 @@ interface UserDao {
     suspend fun getUserByEmail(email: String): User?
 
     @Query("SELECT EXISTS(SELECT * FROM users WHERE email = :email)")
-    fun checkUserExists(email: String): Flow<Boolean>
+    suspend fun checkUserExists(email: String): Boolean
 
     @Query("SELECT * FROM users WHERE id = :userId")
     suspend fun getUserById(userId: Int): User?
@@ -28,4 +28,13 @@ interface UserDao {
 
     @Query("SELECT * FROM users WHERE id = :userId")
     fun getUser(userId: Int): Flow<User>
+
+    @Query("SELECT * FROM users WHERE email = :email")
+    fun getUserByEmailFlow(email: String): Flow<User?>
+
+    @Query("DELETE FROM users WHERE email = :email")
+    suspend fun deleteUserByEmail(email: String)
+
+    @Query("UPDATE users SET password = :newPassword WHERE email = :email")
+    suspend fun updatePassword(email: String, newPassword: String): Int
 }

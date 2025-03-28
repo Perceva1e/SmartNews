@@ -7,7 +7,10 @@ constraintlayoutVersion = "2.1.4"
 converterGson = "2.9.0"
 coreKtxVersion = "1.12.0"
 espressoCoreVersion = "3.5.1"
+firebaseAuthKtx = "22.3.0"
+firebaseBom = "32.7.0"
 glide = "4.16.0"
+googleServices = "4.3.15"
 hiltAndroidVersion = "2.50"
 kotlin = "2.0.21"
 coreKtx = "1.15.0"
@@ -26,6 +29,7 @@ constraintlayout = "2.2.1"
 materialVersion = "1.11.0"
 navigationFragmentKtx = "2.7.4"
 navigationUiKtx = "2.7.4"
+playServicesAuth = "20.7.0"
 roomKtx = "2.6.0"
 roomRuntime = "2.6.1"
 
@@ -47,7 +51,10 @@ androidx-room-ktx = { module = "androidx.room:room-ktx", version.ref = "roomKtx"
 compiler = { module = "com.github.bumptech.glide:compiler", version.ref = "glide" }
 converter-gson = { module = "com.squareup.retrofit2:converter-gson", version.ref = "converterGson" }
 dagger-hilt-android = { module = "com.google.dagger:hilt-android", version.ref = "hiltAndroidVersion" }
+firebase-auth-ktx = { module = "com.google.firebase:firebase-auth-ktx", version.ref = "firebaseAuthKtx" }
+firebase-bom = { module = "com.google.firebase:firebase-bom", version.ref = "firebaseBom" }
 glide = { module = "com.github.bumptech.glide:glide", version.ref = "glide" }
+google-services = { module = "com.google.gms:google-services", version.ref = "googleServices" }
 hilt-compiler = { module = "com.google.dagger:hilt-compiler", version.ref = "hiltAndroidVersion" }
 junit = { group = "junit", name = "junit", version.ref = "junit" }
 androidx-junit = { group = "androidx.test.ext", name = "junit", version.ref = "junitVersion" }
@@ -61,6 +68,7 @@ material = { group = "com.google.android.material", name = "material", version.r
 androidx-activity = { group = "androidx.activity", name = "activity", version.ref = "activity" }
 androidx-constraintlayout = { group = "androidx.constraintlayout", name = "constraintlayout", version.ref = "constraintlayout" }
 material-v1110 = { module = "com.google.android.material:material", version.ref = "materialVersion" }
+play-services-auth = { module = "com.google.android.gms:play-services-auth", version.ref = "playServicesAuth" }
 retrofit = { module = "com.squareup.retrofit2:retrofit", version.ref = "converterGson" }
 
 [plugins]

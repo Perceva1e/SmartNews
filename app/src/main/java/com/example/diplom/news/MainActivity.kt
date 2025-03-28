@@ -6,15 +6,20 @@ import android.os.Bundle
 import android.view.View
 import androidx.activity.viewModels
 import androidx.appcompat.app.AppCompatActivity
+import androidx.lifecycle.lifecycleScope
 import androidx.recyclerview.widget.LinearLayoutManager
 import com.example.diplom.R
 import com.example.diplom.api.NewsApi
+import com.example.diplom.auth.LoginActivity
 import com.example.diplom.database.AppDatabase
 import com.example.diplom.databinding.ActivityMainBinding
 import com.example.diplom.news.adapter.NewsAdapter
 import com.example.diplom.repository.NewsRepository
+import com.example.diplom.utils.AppEvents
 import com.example.diplom.utils.showToast
 import com.example.diplom.viewmodel.NewsViewModelFactory
+import com.google.firebase.auth.FirebaseAuth
+import kotlinx.coroutines.launch
 
 class MainActivity : AppCompatActivity() {
     private lateinit var binding: ActivityMainBinding
@@ -35,7 +40,7 @@ class MainActivity : AppCompatActivity() {
         super.onCreate(savedInstanceState)
         binding = ActivityMainBinding.inflate(layoutInflater)
         setContentView(binding.root)
-
+        checkAuthenticationStatus()
         userId = intent.getIntExtra("USER_ID", -1)
         if (userId == -1) finish()
 
@@ -45,6 +50,11 @@ class MainActivity : AppCompatActivity() {
         setupNavigation()
         updateNavigationSelection()
 
+    }
+
+    private fun startMainActivity() {
+        binding.bottomNavigation.selectedItemId = R.id.navigation_home
+        viewModel.loadNews()
     }
 
     override fun onResume() {
@@ -59,6 +69,7 @@ class MainActivity : AppCompatActivity() {
     private fun setupRecyclerView() {
         adapter = NewsAdapter { news ->
             viewModel.saveNews(userId, news)
+            AppEvents.notifyNewsChanged(userId, "SAVE")
             showToast(getString(R.string.saved_news))
         }
 
@@ -137,5 +148,27 @@ class MainActivity : AppCompatActivity() {
             @Suppress("DEPRECATION")
             overridePendingTransition(0, 0)
         }
+    }
+    private fun checkAuthenticationStatus() {
+        val currentUser = FirebaseAuth.getInstance().currentUser
+        if (currentUser != null && currentUser.isEmailVerified) {
+            lifecycleScope.launch {
+                viewModel.getUserByEmail(currentUser.email!!).collect { user ->
+                    user?.let {
+                        userId = it.id
+                        startMainActivity()
+                    } ?: run {
+                        redirectToLogin()
+                    }
+                }
+            }
+        } else {
+            redirectToLogin()
+        }
+    }
+
+    private fun redirectToLogin() {
+        startActivity(Intent(this, LoginActivity::class.java))
+        finish()
     }
 }

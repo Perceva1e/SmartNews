@@ -3,6 +3,8 @@ package com.example.diplom.news
 import android.content.Intent
 import android.os.Build
 import android.os.Bundle
+import android.view.LayoutInflater
+import android.widget.EditText
 import androidx.activity.viewModels
 import androidx.appcompat.app.AlertDialog
 import androidx.appcompat.app.AppCompatActivity
@@ -14,6 +16,8 @@ import com.example.diplom.databinding.ActivityProfileBinding
 import com.example.diplom.repository.NewsRepository
 import com.example.diplom.utils.showToast
 import com.example.diplom.viewmodel.NewsViewModelFactory
+import com.google.firebase.auth.EmailAuthProvider
+import com.google.firebase.auth.FirebaseAuth
 
 class ProfileActivity : AppCompatActivity() {
     private lateinit var binding: ActivityProfileBinding
@@ -27,6 +31,7 @@ class ProfileActivity : AppCompatActivity() {
         )
     }
     private var userId: Int = -1
+    private val auth = FirebaseAuth.getInstance()
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -57,17 +62,60 @@ class ProfileActivity : AppCompatActivity() {
         }
 
         binding.btnDeleteAccount.setOnClickListener {
-            AlertDialog.Builder(this)
-                .setTitle("Delete Account")
-                .setMessage("Are you sure you want to delete your account?")
-                .setPositiveButton("Delete") { _, _ ->
-                    viewModel.deleteUser(userId)
-                    startActivity(Intent(this, LoginActivity::class.java))
-                    finishAffinity()
-                }
-                .setNegativeButton("Cancel", null)
-                .show()
+            showDeleteConfirmationDialog()
         }
+    }
+
+    private fun showDeleteConfirmationDialog() {
+        val dialogView = LayoutInflater.from(this).inflate(R.layout.dialog_confirm_password, null)
+        val passwordInput = dialogView.findViewById<EditText>(R.id.etPassword)
+
+        AlertDialog.Builder(this)
+            .setTitle("Delete Account")
+            .setMessage("Enter your password to confirm deletion")
+            .setView(dialogView)
+            .setPositiveButton("Delete") { _, _ ->
+                val password = passwordInput.text.toString()
+                if (password.isNotEmpty()) {
+                    deleteUser(password)
+                } else {
+                    passwordInput.error = "Password required"
+                }
+            }
+            .setNegativeButton("Cancel", null)
+            .show()
+    }
+
+    private fun deleteUser(password: String) {
+        val user = auth.currentUser
+        val email = user?.email ?: run {
+            showToast("User not authenticated")
+            return
+        }
+
+        val credential = EmailAuthProvider.getCredential(email, password)
+        user.reauthenticate(credential)
+            .addOnCompleteListener { authTask ->
+                if (authTask.isSuccessful) {
+                    user.delete()
+                        .addOnCompleteListener { deleteTask ->
+                            if (deleteTask.isSuccessful) {
+                                viewModel.deleteUser(userId)
+                                logoutUser()
+                            } else {
+                                showToast("Deletion failed: ${deleteTask.exception?.message}")
+                            }
+                        }
+                } else {
+                    showToast("Authentication failed: ${authTask.exception?.message}")
+                }
+            }
+    }
+
+    private fun logoutUser() {
+        auth.signOut()
+        startActivity(Intent(this, LoginActivity::class.java))
+        finishAffinity()
     }
 
     private fun loadUserData() {

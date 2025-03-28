@@ -13,9 +13,15 @@ import com.example.diplom.database.AppDatabase
 import com.example.diplom.databinding.ActivitySavedNewsBinding
 import com.example.diplom.news.adapter.SavedNewsAdapter
 import com.example.diplom.repository.NewsRepository
+import com.example.diplom.utils.AppEvents
 import com.example.diplom.viewmodel.NewsViewModelFactory
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.Job
+import kotlinx.coroutines.launch
 
 class SavedNewsActivity : AppCompatActivity() {
+    private var eventsJob: Job? = null
     private lateinit var binding: ActivitySavedNewsBinding
     private val viewModel: NewsViewModel by viewModels {
         NewsViewModelFactory(
@@ -43,6 +49,20 @@ class SavedNewsActivity : AppCompatActivity() {
         loadSavedNews()
     }
 
+    override fun onStart() {
+        super.onStart()
+        eventsJob = CoroutineScope(Dispatchers.Main).launch {
+            AppEvents.newsUpdates.collect {
+                loadSavedNews()
+            }
+        }
+    }
+
+    override fun onStop() {
+        super.onStop()
+        eventsJob?.cancel()
+        eventsJob = null
+    }
 
     private fun setupRecyclerView() {
         adapter = SavedNewsAdapter { newsToDelete ->
