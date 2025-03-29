@@ -31,26 +31,38 @@ class SavedNewsAdapter(
         RecyclerView.ViewHolder(binding.root) {
 
         fun bind(news: SavedNews) {
-            binding.tvTitle.text = news.title
-            binding.tvContent.text = news.content
+            with(binding) {
+                binding.tvTitle.text = news.title
+                binding.tvContent.text = news.content
+                tvMood.apply {
+                    text = when (news.mood) {
+                        SavedNews.MOOD_HAPPY -> "😊"
+                        SavedNews.MOOD_SAD -> "😢"
+                        else -> "😐"
+                    }
+                }
+                Glide.with(binding.root)
+                    .load(news.imageUrl)
+                    .placeholder(R.drawable.placeholder_image)
+                    .error(R.drawable.error_image)
+                    .into(binding.ivSavedNewsImage)
 
-            Glide.with(binding.root)
-                .load(news.imageUrl)
-                .placeholder(R.drawable.placeholder_image)
-                .error(R.drawable.error_image)
-                .into(binding.ivSavedNewsImage)
-
-            binding.ibDelete.setOnClickListener {
-                onDeleteClick(news)
+                binding.ibDelete.setOnClickListener {
+                    onDeleteClick(news)
+                }
             }
         }
     }
 
     class SavedNewsDiffCallback : DiffUtil.ItemCallback<SavedNews>() {
-        override fun areItemsTheSame(oldItem: SavedNews, newItem: SavedNews) =
-            oldItem.id == newItem.id
+        override fun areItemsTheSame(oldItem: SavedNews, newItem: SavedNews): Boolean {
+            return oldItem.id == newItem.id
+        }
 
-        override fun areContentsTheSame(oldItem: SavedNews, newItem: SavedNews) =
-            oldItem == newItem
+        override fun areContentsTheSame(oldItem: SavedNews, newItem: SavedNews): Boolean {
+            return oldItem.title == newItem.title &&
+                    oldItem.content == newItem.content &&
+                    oldItem.mood == newItem.mood
+        }
     }
 }

@@ -3,16 +3,14 @@
         <item name="android:windowActivityTransitions">true</item>
         <item name="android:windowEnterAnimation">@android:anim/fade_in</item>
         <item name="android:windowExitAnimation">@android:anim/fade_out</item>
-        <!-- Основные цвета -->
+
         <item name="colorPrimary">@color/primary</item>
         <item name="colorOnPrimary">@color/on_primary</item>
         <item name="colorPrimaryContainer">@color/primary_container</item>
 
-        <!-- Типографика -->
         <item name="textAppearanceTitleMedium">@style/TextAppearance.Material3.TitleMedium</item>
         <item name="textAppearanceBodyLarge">@style/TextAppearance.Material3.BodyLarge</item>
 
-        <!-- Формы -->
         <item name="shapeAppearanceSmallComponent">@style/ShapeAppearance.SmallComponent</item>
         <item name="shapeAppearanceMediumComponent">@style/ShapeAppearance.MediumComponent</item>
     </style>
@@ -34,6 +32,11 @@
     <style name="TextAppearance.BodyLarge" parent="TextAppearance.Material3.BodyLarge">
         <item name="fontFamily">@font/roboto_regular</item>
         <item name="android:textSize">16sp</item>
+    </style>
+
+    <style name="MoodIndicator">
+        <item name="android:background">@drawable/bg_mood_indicator</item>
+        <item name="android:padding">4dp</item>
     </style>
 
 </resources>

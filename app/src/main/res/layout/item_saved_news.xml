@@ -31,12 +31,27 @@
             android:background="?attr/selectableItemBackgroundBorderless"
             android:contentDescription="@string/delete"/>
 
+        <TextView
+            android:id="@+id/tvMood"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_below="@id/ibDelete"
+            android:layout_alignEnd="@id/ibDelete"
+            android:layout_marginTop="4dp"
+            android:background="@drawable/bg_mood_indicator"
+            android:paddingHorizontal="8dp"
+            android:paddingVertical="4dp"
+            android:textColor="@color/primary_container"
+            android:textSize="20sp"
+            tools:text="😊" />
+
         <LinearLayout
+            android:id="@+id/linearLayout"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
+            android:layout_marginStart="8dp"
             android:layout_toStartOf="@id/ibDelete"
             android:layout_toEndOf="@id/ivSavedNewsImage"
-            android:layout_marginStart="8dp"
             android:orientation="vertical">
 
             <TextView
@@ -45,24 +60,24 @@
                 android:layout_height="wrap_content"
                 android:textSize="16sp"
                 android:textStyle="bold"
-                tools:text="News Title"/>
+                tools:text="News Title" />
 
             <TextView
                 android:id="@+id/tvContent"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:textSize="14sp"
                 android:maxLines="3"
-                tools:text="News content preview..."/>
+                android:textSize="14sp"
+                tools:text="News content preview..." />
 
             <TextView
                 android:id="@+id/tvUrl"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:layout_marginTop="4dp"
-                android:textColor="@color/primary"
                 android:autoLink="web"
-                tools:text="https://example.com"/>
+                android:textColor="@color/primary"
+                tools:text="https://example.com" />
 
         </LinearLayout>
 

@@ -93,7 +93,8 @@ class NewsViewModel(
                     title = news.title ?: "No title",
                     content = news.description ?: "",
                     url = news.url,
-                    imageUrl = news.urlToImage
+                    imageUrl = news.urlToImage,
+                    mood = news.analyzeMood()
                 )
                 repository.saveNewsForUser(savedNews)
 

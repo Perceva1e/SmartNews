@@ -31,5 +31,13 @@ data class SavedNews(
     val url: String,
 
     @ColumnInfo(name = "image")
-    val imageUrl: String?
-)
+    val imageUrl: String?,
+
+    @ColumnInfo(name = "mood")
+    val mood: String
+){
+    companion object {
+        const val MOOD_HAPPY = "happy"
+        const val MOOD_SAD = "sad"
+    }
+}

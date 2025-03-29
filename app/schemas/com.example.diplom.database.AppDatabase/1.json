@@ -2,7 +2,7 @@
   "formatVersion": 1,
   "database": {
     "version": 1,
-    "identityHash": "42cf3bd9d6d225695d70830e5fc28274",
+    "identityHash": "ef0d47adb5868d1519ed172580c29fab",
     "entities": [
       {
         "tableName": "users",
@@ -44,7 +44,7 @@
       },
       {
         "tableName": "saved_news",
-        "createSql": "CREATE TABLE IF NOT EXISTS `${TABLE_NAME}` (`id` INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL, `user_id` INTEGER NOT NULL, `title` TEXT NOT NULL, `content` TEXT NOT NULL, `url` TEXT NOT NULL, `image` TEXT, FOREIGN KEY(`user_id`) REFERENCES `users`(`id`) ON UPDATE NO ACTION ON DELETE CASCADE )",
+        "createSql": "CREATE TABLE IF NOT EXISTS `${TABLE_NAME}` (`id` INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL, `user_id` INTEGER NOT NULL, `title` TEXT NOT NULL, `content` TEXT NOT NULL, `url` TEXT NOT NULL, `image` TEXT, `mood` TEXT NOT NULL, FOREIGN KEY(`user_id`) REFERENCES `users`(`id`) ON UPDATE NO ACTION ON DELETE CASCADE )",
         "fields": [
           {
             "fieldPath": "id",
@@ -81,6 +81,12 @@
             "columnName": "image",
             "affinity": "TEXT",
             "notNull": false
+          },
+          {
+            "fieldPath": "mood",
+            "columnName": "mood",
+            "affinity": "TEXT",
+            "notNull": true
           }
         ],
         "primaryKey": {
@@ -108,7 +114,7 @@
     "views": [],
     "setupQueries": [
       "CREATE TABLE IF NOT EXISTS room_master_table (id INTEGER PRIMARY KEY,identity_hash TEXT)",
-      "INSERT OR REPLACE INTO room_master_table (id,identity_hash) VALUES(42, '42cf3bd9d6d225695d70830e5fc28274')"
+      "INSERT OR REPLACE INTO room_master_table (id,identity_hash) VALUES(42, 'ef0d47adb5868d1519ed172580c29fab')"
     ]
   }
 }

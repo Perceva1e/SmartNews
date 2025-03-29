@@ -15,8 +15,8 @@ import com.bumptech.glide.load.resource.drawable.DrawableTransitionOptions
 import com.bumptech.glide.request.RequestListener
 import com.bumptech.glide.request.target.Target
 import com.example.diplom.R
-import com.example.diplom.databinding.ItemNewsBinding
 import com.example.diplom.api.model.News
+import com.example.diplom.databinding.ItemNewsBinding
 
 class NewsAdapter(
     private val onSaveClick: (News) -> Unit
@@ -41,7 +41,13 @@ class NewsAdapter(
         fun bind(news: News) {
             with(binding) {
                 Log.d("ADAPTER", "Binding news: ${news.title}")
-
+                tvMood.apply {
+                    text = when(news.analyzeMood()) {
+                        News.MOOD_HAPPY -> context.getString(R.string.mood_happy)
+                        News.MOOD_SAD -> context.getString(R.string.mood_sad)
+                        else -> context.getString(R.string.mood_neutral)
+                    }
+                }
                 tvTitle.text = news.title ?: root.context.getString(R.string.no_title)
                 tvDescription.text = news.description ?: root.context.getString(R.string.no_description)
 
@@ -93,4 +99,5 @@ class NewsAdapter(
             return oldItem == newItem
         }
     }
+
 }
