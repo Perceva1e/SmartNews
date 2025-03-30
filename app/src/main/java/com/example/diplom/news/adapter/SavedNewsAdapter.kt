@@ -9,8 +9,10 @@ import com.bumptech.glide.Glide
 import com.example.diplom.R
 import com.example.diplom.database.entity.SavedNews
 import com.example.diplom.databinding.ItemSavedNewsBinding
+import com.example.diplom.utils.AppEvents
 
 class SavedNewsAdapter(
+    private val userId: Int,
     private val onDeleteClick: (SavedNews) -> Unit
 ) : ListAdapter<SavedNews, SavedNewsAdapter.SavedNewsViewHolder>(SavedNewsDiffCallback()) {
 
@@ -49,6 +51,7 @@ class SavedNewsAdapter(
 
                 binding.ibDelete.setOnClickListener {
                     onDeleteClick(news)
+                    AppEvents.notifyNewsChanged(userId, "DELETE")
                 }
             }
         }

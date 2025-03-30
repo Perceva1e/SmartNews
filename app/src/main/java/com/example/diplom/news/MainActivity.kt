@@ -67,7 +67,7 @@ class MainActivity : AppCompatActivity() {
     }
 
     private fun setupRecyclerView() {
-        adapter = NewsAdapter { news ->
+        adapter = NewsAdapter(userId) { news ->
             viewModel.saveNews(userId, news)
             AppEvents.notifyNewsChanged(userId, "SAVE")
             showToast(getString(R.string.saved_news))

@@ -3,6 +3,7 @@ package com.example.diplom.news
 import android.content.Intent
 import android.os.Build
 import android.os.Bundle
+import android.util.Log
 import android.view.View
 import androidx.activity.viewModels
 import androidx.appcompat.app.AppCompatActivity
@@ -16,9 +17,14 @@ import com.example.diplom.repository.NewsRepository
 import com.example.diplom.utils.AppEvents
 import com.example.diplom.utils.showToast
 import com.example.diplom.viewmodel.NewsViewModelFactory
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.Job
+import kotlinx.coroutines.launch
 
 class RecommendActivity : AppCompatActivity() {
     private lateinit var binding: ActivityRecommendBinding
+    private var eventsJob: Job? = null
     private val viewModel: NewsViewModel by viewModels {
         NewsViewModelFactory(
             NewsRepository(
@@ -50,7 +56,7 @@ class RecommendActivity : AppCompatActivity() {
 
 
     private fun setupRecyclerView() {
-        adapter = NewsAdapter { news ->
+        adapter = NewsAdapter(userId) { news ->
             viewModel.saveNews(userId, news)
             AppEvents.notifyNewsChanged(userId, "SAVE")
             showToast(getString(R.string.saved_news))
@@ -136,5 +142,22 @@ class RecommendActivity : AppCompatActivity() {
             @Suppress("DEPRECATION")
             overridePendingTransition(0, 0)
         }
+    }
+    override fun onStart() {
+        super.onStart()
+        eventsJob = CoroutineScope(Dispatchers.Main).launch {
+            AppEvents.newsUpdates.collect {
+                if (it.first == userId) {
+                    viewModel.loadRecommendations(userId)
+                    Log.d("Recommendations", "Received update event: ${it.second}")
+                }
+            }
+        }
+    }
+
+    override fun onStop() {
+        super.onStop()
+        eventsJob?.cancel()
+        eventsJob = null
     }
 }

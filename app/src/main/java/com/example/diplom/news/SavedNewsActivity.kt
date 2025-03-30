@@ -65,8 +65,9 @@ class SavedNewsActivity : AppCompatActivity() {
     }
 
     private fun setupRecyclerView() {
-        adapter = SavedNewsAdapter { newsToDelete ->
+        adapter = SavedNewsAdapter(userId) { newsToDelete ->
             viewModel.deleteNews(userId, newsToDelete)
+            AppEvents.notifyNewsChanged(userId, "DELETE")
         }
 
         binding.rvSavedNews.apply {

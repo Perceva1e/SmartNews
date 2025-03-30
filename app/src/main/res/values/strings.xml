@@ -56,4 +56,12 @@
     <string name="mood_happy">😊</string>
     <string name="mood_sad">😢</string>
     <string name="mood_neutral">😐</string>
+    <string name="resend_limit">Resend available in %d minutes</string>
+    <string name="no_internet">No internet connection</string>
+    <string name="too_many_requests">Too many requests. Please try again later</string>
+    <string name="invalid_email">Invalid email format</string>
+    <string name="user_not_found">User not found</string>
+    <string name="reset_email_sent">Instructions sent to your email</string>
+    <string name="reset_email_failed">Failed to send</string>
+    <string name="unknown_error">Unknown error</string>
 </resources>

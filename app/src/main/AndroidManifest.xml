@@ -31,9 +31,6 @@
             android:name=".auth.LoginActivity"
             android:exported="false"/>
         <activity
-            android:name=".news.ChangePasswordActivity"
-            android:exported="false"/>
-        <activity
             android:name=".news.ProfileActivity"
             android:exported="false"/>
         <activity

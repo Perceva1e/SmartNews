@@ -17,8 +17,10 @@ import com.bumptech.glide.request.target.Target
 import com.example.diplom.R
 import com.example.diplom.api.model.News
 import com.example.diplom.databinding.ItemNewsBinding
+import com.example.diplom.utils.AppEvents
 
 class NewsAdapter(
+    private val userId: Int,
     private val onSaveClick: (News) -> Unit
 ) : ListAdapter<News, NewsAdapter.NewsViewHolder>(NewsDiffCallback()) {
 
@@ -85,7 +87,9 @@ class NewsAdapter(
                     ivNewsImage.visibility = View.GONE
                 }
 
-                btnSave.setOnClickListener { onSaveClick(news) }
+                btnSave.setOnClickListener {
+                    AppEvents.notifyNewsChanged(userId, "SAVE")
+                    onSaveClick(news) }
             }
         }
     }
