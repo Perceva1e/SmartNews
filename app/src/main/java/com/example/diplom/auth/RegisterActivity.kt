@@ -2,6 +2,7 @@ package com.example.diplom.auth
 
 import android.content.Intent
 import android.os.Bundle
+import android.util.Log
 import androidx.appcompat.app.AppCompatActivity
 import androidx.lifecycle.ViewModelProvider
 import com.example.diplom.R
@@ -65,17 +66,26 @@ class RegisterActivity : AppCompatActivity() {
     }
 
     private fun registerUser(name: String, email: String, password: String) {
+        Log.d("RegisterActivity", "Starting registration for: $email")
+
         CoroutineScope(Dispatchers.Main).launch {
             try {
-                if (viewModel.isUserExists(email)) {
+                Log.d("RegisterActivity", "Checking if user exists in local DB")
+                val userExists = viewModel.isUserExists(email)
+                if (userExists) {
+                    Log.w("RegisterActivity", "Registration failed - user already exists")
                     showToast(getString(R.string.error_user_exists))
                     return@launch
                 }
 
+                Log.d("RegisterActivity", "Attempting Firebase registration")
                 auth.createUserWithEmailAndPassword(email, password)
                     .addOnCompleteListener { firebaseTask ->
                         if (firebaseTask.isSuccessful) {
+                            Log.d("RegisterActivity", "Firebase user created successfully")
                             val firebaseUser = auth.currentUser
+
+                            Log.d("RegisterActivity", "Updating Firebase profile with name: $name")
                             val profileUpdates = UserProfileChangeRequest.Builder()
                                 .setDisplayName(name)
                                 .build()
@@ -83,30 +93,49 @@ class RegisterActivity : AppCompatActivity() {
                             firebaseUser?.updateProfile(profileUpdates)
                                 ?.addOnCompleteListener { profileTask ->
                                     if (profileTask.isSuccessful) {
+                                        Log.d("RegisterActivity", "Firebase profile updated successfully")
                                         CoroutineScope(Dispatchers.Main).launch {
                                             try {
+                                                Log.d("RegisterActivity", "Hashing password")
+                                                val hashedPassword = SecurityUtils.sha256(password)
+                                                Log.d("RegisterActivity", "Creating local user object")
                                                 val localUser = User(
                                                     name = name,
                                                     email = email,
-                                                    password = SecurityUtils.sha256(password)
+                                                    password = hashedPassword
                                                 )
+
+                                                Log.d("RegisterActivity", "Saving user to local DB")
                                                 val userId = viewModel.registerUser(localUser)
+                                                Log.d("RegisterActivity", "User saved to DB with ID: $userId")
+
+                                                Log.d("RegisterActivity", "Starting email verification")
                                                 startEmailVerificationActivity(userId.toInt(), email)
-                                            } catch (_: Exception) {
+                                            } catch (e: Exception) {
+                                                Log.e("RegisterActivity", "Error saving user to local DB", e)
                                                 firebaseUser.delete()
-                                                showToast(getString(R.string.error_registration_failed))
+                                                    .addOnCompleteListener {
+                                                        Log.w("RegisterActivity", "Firebase user rolled back due to local DB error")
+                                                        showToast(getString(R.string.error_registration_failed))
+                                                    }
                                             }
                                         }
                                     } else {
-                                        firebaseUser.delete()
-                                        showToast(getString(R.string.error_profile_update))
+                                        Log.e("RegisterActivity", "Firebase profile update failed", profileTask.exception)
+                                        firebaseUser?.delete()
+                                            ?.addOnCompleteListener {
+                                                Log.w("RegisterActivity", "Firebase user rolled back due to profile update error")
+                                                showToast(getString(R.string.error_profile_update))
+                                            }
                                     }
                                 }
                         } else {
+                            Log.e("RegisterActivity", "Firebase registration failed", firebaseTask.exception)
                             showToast(getString(R.string.error_registration_failed))
                         }
                     }
-            } catch (_: Exception) {
+            } catch (e: Exception) {
+                Log.e("RegisterActivity", "General registration error", e)
                 showToast(getString(R.string.error_general))
             }
         }
