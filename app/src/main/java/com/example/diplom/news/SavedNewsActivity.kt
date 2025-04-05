@@ -3,6 +3,9 @@ package com.example.diplom.news
 import android.content.Intent
 import android.os.Build
 import android.os.Bundle
+import android.os.Handler
+import android.os.Looper
+import android.util.Log
 import android.view.View
 import androidx.activity.viewModels
 import androidx.appcompat.app.AppCompatActivity
@@ -15,6 +18,9 @@ import com.example.diplom.news.adapter.SavedNewsAdapter
 import com.example.diplom.repository.NewsRepository
 import com.example.diplom.utils.AppEvents
 import com.example.diplom.viewmodel.NewsViewModelFactory
+import com.google.android.gms.ads.AdListener
+import com.google.android.gms.ads.AdRequest
+import com.google.android.gms.ads.AdView
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
@@ -35,6 +41,21 @@ class SavedNewsActivity : AppCompatActivity() {
 
     private lateinit var adapter: SavedNewsAdapter
     private var userId: Int = -1
+    private lateinit var adView: AdView
+    private val adRefreshHandler = Handler(Looper.getMainLooper())
+    private var lastRefreshTime = 0L
+    private var adClosedTime = 0L
+    private var isAdManuallyClosed = false
+    private val adReshowDelay = 1 * 60 * 1000L
+
+    private val adRefreshRunnable = object : Runnable {
+        override fun run() {
+            Log.d("AdRefresh", "Refreshing ad in SavedNewsActivity")
+            adView.loadAd(AdRequest.Builder().build())
+            lastRefreshTime = System.currentTimeMillis()
+            adRefreshHandler.postDelayed(this, adReshowDelay)
+        }
+    }
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -43,10 +64,58 @@ class SavedNewsActivity : AppCompatActivity() {
 
         userId = intent.getIntExtra("USER_ID", -1)
         if (userId == -1) finish()
+
+        adView = findViewById(R.id.adView)
+        setupAdListener()
+        val adRequest = AdRequest.Builder().build()
+        adView.loadAd(adRequest)
+        lastRefreshTime = System.currentTimeMillis()
+
+        adRefreshHandler.postDelayed(adRefreshRunnable, adReshowDelay)
+
         binding.bottomNavigation.selectedItemId = R.id.navigation_saved
         setupNavigation()
         setupRecyclerView()
         loadSavedNews()
+
+        binding.btnCloseAd.setOnClickListener {
+            adView.visibility = View.GONE
+            binding.btnCloseAd.visibility = View.GONE
+            adRefreshHandler.removeCallbacks(adRefreshRunnable)
+            isAdManuallyClosed = true
+            adClosedTime = System.currentTimeMillis()
+            adRefreshHandler.postDelayed({
+                if (isAdManuallyClosed) {
+                    reloadAd()
+                }
+            }, adReshowDelay)
+        }
+    }
+
+    private fun setupAdListener() {
+        adView.adListener = object : AdListener() {
+            override fun onAdLoaded() {
+                super.onAdLoaded()
+                binding.adView.visibility = View.VISIBLE
+                binding.btnCloseAd.visibility = View.VISIBLE
+                isAdManuallyClosed = false
+                Log.d("AdListener", "Ad loaded successfully in SavedNewsActivity")
+            }
+
+            override fun onAdClosed() {
+                super.onAdClosed()
+                binding.adView.visibility = View.GONE
+                binding.btnCloseAd.visibility = View.GONE
+            }
+        }
+    }
+
+    private fun reloadAd() {
+        binding.adView.visibility = View.VISIBLE
+        adView.loadAd(AdRequest.Builder().build())
+        lastRefreshTime = System.currentTimeMillis()
+        adRefreshHandler.postDelayed(adRefreshRunnable, adReshowDelay)
+        isAdManuallyClosed = false
     }
 
     override fun onStart() {
@@ -58,10 +127,39 @@ class SavedNewsActivity : AppCompatActivity() {
         }
     }
 
+    override fun onResume() {
+        super.onResume()
+        binding.bottomNavigation.selectedItemId = R.id.navigation_saved
+        adView.resume()
+        val currentTime = System.currentTimeMillis()
+
+        if (isAdManuallyClosed && currentTime - adClosedTime >= adReshowDelay) {
+            reloadAd()
+        } else if (!isAdManuallyClosed && currentTime - lastRefreshTime > adReshowDelay && binding.adView.visibility == View.VISIBLE) {
+            adView.loadAd(AdRequest.Builder().build())
+            lastRefreshTime = currentTime
+            adRefreshHandler.postDelayed(adRefreshRunnable, adReshowDelay)
+        } else if (binding.adView.visibility == View.VISIBLE) {
+            adRefreshHandler.postDelayed(adRefreshRunnable, adReshowDelay)
+        }
+    }
+
+    override fun onPause() {
+        super.onPause()
+        adView.pause()
+        adRefreshHandler.removeCallbacks(adRefreshRunnable)
+    }
+
     override fun onStop() {
         super.onStop()
         eventsJob?.cancel()
         eventsJob = null
+    }
+
+    override fun onDestroy() {
+        super.onDestroy()
+        adView.destroy()
+        adRefreshHandler.removeCallbacks(adRefreshRunnable)
     }
 
     private fun setupRecyclerView() {
@@ -84,18 +182,13 @@ class SavedNewsActivity : AppCompatActivity() {
         }
     }
 
-    override fun onResume() {
-        super.onResume()
-        binding.bottomNavigation.selectedItemId = R.id.navigation_saved
-    }
-
     private fun setupNavigation() {
         binding.bottomNavigation.setOnItemSelectedListener { item ->
             if (item.itemId == binding.bottomNavigation.selectedItemId) {
                 return@setOnItemSelectedListener false
             }
 
-            when(item.itemId) {
+            when (item.itemId) {
                 R.id.navigation_home -> {
                     startActivity(Intent(this, MainActivity::class.java).apply {
                         putExtra("USER_ID", userId)
@@ -104,6 +197,7 @@ class SavedNewsActivity : AppCompatActivity() {
                     applyTransition()
                     true
                 }
+
                 R.id.navigation_saved -> true
                 R.id.navigation_recommend -> {
                     startActivity(Intent(this, RecommendActivity::class.java).apply {
@@ -113,6 +207,7 @@ class SavedNewsActivity : AppCompatActivity() {
                     applyTransition()
                     true
                 }
+
                 R.id.navigation_profile -> {
                     startActivity(
                         Intent(this, ProfileActivity::class.java).apply {
@@ -123,6 +218,7 @@ class SavedNewsActivity : AppCompatActivity() {
                     applyTransition()
                     true
                 }
+
                 else -> false
             }
         }

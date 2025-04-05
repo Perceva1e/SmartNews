@@ -3,6 +3,9 @@ package com.example.diplom.news
 import android.content.Intent
 import android.os.Build
 import android.os.Bundle
+import android.os.Handler
+import android.os.Looper
+import android.util.Log
 import android.view.View
 import androidx.activity.viewModels
 import androidx.appcompat.app.AppCompatActivity
@@ -18,6 +21,9 @@ import com.example.diplom.repository.NewsRepository
 import com.example.diplom.utils.AppEvents
 import com.example.diplom.utils.showToast
 import com.example.diplom.viewmodel.NewsViewModelFactory
+import com.google.android.gms.ads.AdListener
+import com.google.android.gms.ads.AdRequest
+import com.google.android.gms.ads.AdView
 import com.google.firebase.auth.FirebaseAuth
 import kotlinx.coroutines.launch
 
@@ -35,6 +41,21 @@ class MainActivity : AppCompatActivity() {
 
     private lateinit var adapter: NewsAdapter
     private var userId: Int = -1
+    private lateinit var adView: AdView
+    private val adRefreshHandler = Handler(Looper.getMainLooper())
+    private var lastRefreshTime = 0L
+    private var adClosedTime = 0L
+    private var isAdManuallyClosed = false
+    private val adReshowDelay = 5 * 60 * 1000L
+
+    private val adRefreshRunnable = object : Runnable {
+        override fun run() {
+            Log.d("AdRefresh", "Refreshing ad")
+            adView.loadAd(AdRequest.Builder().build())
+            lastRefreshTime = System.currentTimeMillis()
+            adRefreshHandler.postDelayed(this, adReshowDelay)
+        }
+    }
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -44,12 +65,69 @@ class MainActivity : AppCompatActivity() {
         userId = intent.getIntExtra("USER_ID", -1)
         if (userId == -1) finish()
 
+        adView = findViewById(R.id.adView)
+        setupAdListener()
+        val adRequest = AdRequest.Builder().build()
+        adView.loadAd(adRequest)
+        lastRefreshTime = System.currentTimeMillis()
+
+        adRefreshHandler.postDelayed(adRefreshRunnable, adReshowDelay)
         setupRecyclerView()
         binding.bottomNavigation.selectedItemId = R.id.navigation_home
         observeNews()
         setupNavigation()
         updateNavigationSelection()
 
+        binding.btnCloseAd.setOnClickListener {
+            adView.visibility = View.GONE
+            binding.btnCloseAd.visibility = View.GONE
+            adRefreshHandler.removeCallbacks(adRefreshRunnable)
+            isAdManuallyClosed = true
+            adClosedTime = System.currentTimeMillis()
+            adRefreshHandler.postDelayed({
+                if (isAdManuallyClosed) {
+                    reloadAd()
+                }
+            }, adReshowDelay)
+        }
+    }
+
+    private fun setupAdListener() {
+        adView.adListener = object : AdListener() {
+            override fun onAdLoaded() {
+                super.onAdLoaded()
+                binding.adView.visibility = View.VISIBLE
+                binding.btnCloseAd.visibility = View.VISIBLE
+                isAdManuallyClosed = false
+                Log.d("AdListener", "Ad loaded successfully")
+            }
+
+            override fun onAdClosed() {
+                super.onAdClosed()
+                binding.adView.visibility = View.GONE
+                binding.btnCloseAd.visibility = View.GONE
+            }
+        }
+    }
+
+    private fun reloadAd() {
+        binding.adView.visibility = View.VISIBLE
+        adView.loadAd(AdRequest.Builder().build())
+        lastRefreshTime = System.currentTimeMillis()
+        adRefreshHandler.postDelayed(adRefreshRunnable, adReshowDelay)
+        isAdManuallyClosed = false
+    }
+
+    override fun onPause() {
+        super.onPause()
+        adView.pause()
+        adRefreshHandler.removeCallbacks(adRefreshRunnable)
+    }
+
+    override fun onDestroy() {
+        super.onDestroy()
+        adView.destroy()
+        adRefreshHandler.removeCallbacks(adRefreshRunnable)
     }
 
     private fun startMainActivity() {
@@ -60,6 +138,18 @@ class MainActivity : AppCompatActivity() {
     override fun onResume() {
         super.onResume()
         binding.bottomNavigation.selectedItemId = R.id.navigation_home
+        adView.resume()
+        val currentTime = System.currentTimeMillis()
+
+        if (isAdManuallyClosed && currentTime - adClosedTime >= adReshowDelay) {
+            reloadAd()
+        } else if (!isAdManuallyClosed && currentTime - lastRefreshTime > adReshowDelay && binding.adView.visibility == View.VISIBLE) {
+            adView.loadAd(AdRequest.Builder().build())
+            lastRefreshTime = currentTime
+            adRefreshHandler.postDelayed(adRefreshRunnable, adReshowDelay)
+        } else if (binding.adView.visibility == View.VISIBLE) {
+            adRefreshHandler.postDelayed(adRefreshRunnable, adReshowDelay)
+        }
     }
 
     private fun updateNavigationSelection() {
@@ -116,6 +206,7 @@ class MainActivity : AppCompatActivity() {
                     applyTransition()
                     true
                 }
+
                 R.id.navigation_recommend -> {
                     startActivity(
                         Intent(this, RecommendActivity::class.java).apply {
@@ -126,6 +217,7 @@ class MainActivity : AppCompatActivity() {
                     applyTransition()
                     true
                 }
+
                 R.id.navigation_profile -> {
                     startActivity(
                         Intent(this, ProfileActivity::class.java).apply {
@@ -136,6 +228,7 @@ class MainActivity : AppCompatActivity() {
                     applyTransition()
                     true
                 }
+
                 else -> false
             }
         }
@@ -149,6 +242,7 @@ class MainActivity : AppCompatActivity() {
             overridePendingTransition(0, 0)
         }
     }
+
     private fun checkAuthenticationStatus() {
         val currentUser = FirebaseAuth.getInstance().currentUser
         if (currentUser != null && currentUser.isEmailVerified) {

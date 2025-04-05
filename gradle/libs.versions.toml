@@ -29,6 +29,7 @@ constraintlayout = "2.2.1"
 materialVersion = "1.11.0"
 navigationFragmentKtx = "2.7.4"
 navigationUiKtx = "2.7.4"
+playServicesAds = "22.0.0"
 playServicesAuth = "20.7.0"
 roomKtx = "2.6.0"
 roomRuntime = "2.6.1"
@@ -68,6 +69,7 @@ material = { group = "com.google.android.material", name = "material", version.r
 androidx-activity = { group = "androidx.activity", name = "activity", version.ref = "activity" }
 androidx-constraintlayout = { group = "androidx.constraintlayout", name = "constraintlayout", version.ref = "constraintlayout" }
 material-v1110 = { module = "com.google.android.material:material", version.ref = "materialVersion" }
+play-services-ads = { module = "com.google.android.gms:play-services-ads", version.ref = "playServicesAds" }
 play-services-auth = { module = "com.google.android.gms:play-services-auth", version.ref = "playServicesAuth" }
 retrofit = { module = "com.squareup.retrofit2:retrofit", version.ref = "converterGson" }
 

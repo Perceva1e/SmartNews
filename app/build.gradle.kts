@@ -96,4 +96,5 @@ dependencies {
     implementation (libs.firebase.auth.ktx)
     implementation (libs.play.services.auth)
     implementation(platform(libs.firebase.bom))
+    implementation (libs.play.services.ads)
 }

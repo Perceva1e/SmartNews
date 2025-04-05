@@ -3,7 +3,11 @@ package com.example.diplom.news
 import android.content.Intent
 import android.os.Build
 import android.os.Bundle
+import android.os.Handler
+import android.os.Looper
+import android.util.Log
 import android.view.LayoutInflater
+import android.view.View
 import android.widget.EditText
 import androidx.activity.viewModels
 import androidx.appcompat.app.AlertDialog
@@ -16,6 +20,9 @@ import com.example.diplom.databinding.ActivityProfileBinding
 import com.example.diplom.repository.NewsRepository
 import com.example.diplom.utils.showToast
 import com.example.diplom.viewmodel.NewsViewModelFactory
+import com.google.android.gms.ads.AdListener
+import com.google.android.gms.ads.AdRequest
+import com.google.android.gms.ads.AdView
 import com.google.firebase.auth.EmailAuthProvider
 import com.google.firebase.auth.FirebaseAuth
 
@@ -32,6 +39,21 @@ class ProfileActivity : AppCompatActivity() {
     }
     private var userId: Int = -1
     private val auth = FirebaseAuth.getInstance()
+    private lateinit var adView: AdView
+    private val adRefreshHandler = Handler(Looper.getMainLooper())
+    private var lastRefreshTime = 0L
+    private var adClosedTime = 0L
+    private var isAdManuallyClosed = false
+    private val adReshowDelay = 1 * 60 * 1000L
+
+    private val adRefreshRunnable = object : Runnable {
+        override fun run() {
+            Log.d("AdRefresh", "Refreshing ad in ProfileActivity")
+            adView.loadAd(AdRequest.Builder().build())
+            lastRefreshTime = System.currentTimeMillis()
+            adRefreshHandler.postDelayed(this, adReshowDelay)
+        }
+    }
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -40,16 +62,90 @@ class ProfileActivity : AppCompatActivity() {
 
         userId = intent.getIntExtra("USER_ID", -1)
         if (userId == -1) finish()
+
+        adView = findViewById(R.id.adView)
+        setupAdListener()
+        val adRequest = AdRequest.Builder().build()
+        adView.loadAd(adRequest)
+        lastRefreshTime = System.currentTimeMillis()
+
+        adRefreshHandler.postDelayed(adRefreshRunnable, adReshowDelay)
+
         binding.bottomNavigation.selectedItemId = R.id.navigation_profile
         setupViews()
         loadUserData()
         setupNavigation()
+
+        binding.btnCloseAd.setOnClickListener {
+            adView.visibility = View.GONE
+            binding.btnCloseAd.visibility = View.GONE
+            adRefreshHandler.removeCallbacks(adRefreshRunnable)
+            isAdManuallyClosed = true
+            adClosedTime = System.currentTimeMillis()
+            adRefreshHandler.postDelayed({
+                if (isAdManuallyClosed) {
+                    reloadAd()
+                }
+            }, adReshowDelay)
+        }
     }
+
+    private fun setupAdListener() {
+        adView.adListener = object : AdListener() {
+            override fun onAdLoaded() {
+                super.onAdLoaded()
+                binding.adView.visibility = View.VISIBLE
+                binding.btnCloseAd.visibility = View.VISIBLE
+                isAdManuallyClosed = false
+                Log.d("AdListener", "Ad loaded successfully in ProfileActivity")
+            }
+
+            override fun onAdClosed() {
+                super.onAdClosed()
+                binding.adView.visibility = View.GONE
+                binding.btnCloseAd.visibility = View.GONE
+            }
+        }
+    }
+
+    private fun reloadAd() {
+        binding.adView.visibility = View.VISIBLE
+        adView.loadAd(AdRequest.Builder().build())
+        lastRefreshTime = System.currentTimeMillis()
+        adRefreshHandler.postDelayed(adRefreshRunnable, adReshowDelay)
+        isAdManuallyClosed = false
+    }
+
     override fun onResume() {
         super.onResume()
         binding.bottomNavigation.selectedItemId = R.id.navigation_profile
+        adView.resume()
+        val currentTime = System.currentTimeMillis()
+
+        if (isAdManuallyClosed && currentTime - adClosedTime >= adReshowDelay) {
+            reloadAd()
+        } else if (!isAdManuallyClosed && currentTime - lastRefreshTime > adReshowDelay && binding.adView.visibility == View.VISIBLE) {
+            adView.loadAd(AdRequest.Builder().build())
+            lastRefreshTime = currentTime
+            adRefreshHandler.postDelayed(adRefreshRunnable, adReshowDelay)
+        } else if (binding.adView.visibility == View.VISIBLE) {
+            adRefreshHandler.postDelayed(adRefreshRunnable, adReshowDelay)
+        }
         loadUserData()
     }
+
+    override fun onPause() {
+        super.onPause()
+        adView.pause()
+        adRefreshHandler.removeCallbacks(adRefreshRunnable)
+    }
+
+    override fun onDestroy() {
+        super.onDestroy()
+        adView.destroy()
+        adRefreshHandler.removeCallbacks(adRefreshRunnable)
+    }
+
     private fun setupViews() {
         binding.btnSaveChanges.setOnClickListener {
             val newName = binding.etName.text.toString()
@@ -159,6 +255,7 @@ class ProfileActivity : AppCompatActivity() {
                     applyTransition()
                     true
                 }
+
                 R.id.navigation_saved -> {
                     startActivity(
                         Intent(this, SavedNewsActivity::class.java).apply {
@@ -169,6 +266,7 @@ class ProfileActivity : AppCompatActivity() {
                     applyTransition()
                     true
                 }
+
                 R.id.navigation_recommend -> {
                     startActivity(
                         Intent(this, RecommendActivity::class.java).apply {
@@ -179,12 +277,12 @@ class ProfileActivity : AppCompatActivity() {
                     applyTransition()
                     true
                 }
+
                 R.id.navigation_profile -> true
                 else -> false
             }
         }
     }
-
 
     private fun applyTransition() {
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.UPSIDE_DOWN_CAKE) {
