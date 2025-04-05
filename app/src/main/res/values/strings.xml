@@ -64,4 +64,16 @@
     <string name="reset_email_sent">Instructions sent to your email</string>
     <string name="reset_email_failed">Failed to send</string>
     <string name="unknown_error">Unknown error</string>
+    <string name="subscribe_to_remove_ads">Subscribe to Remove Ads</string>
+    <string name="unlock_a_premium_experience">Unlock a premium experience!</string>
+    <string name="cardholder_name">Cardholder Name</string>
+    <string name="card_number">Card Number</string>
+    <string name="expiry_date_mm_yy">Expiry Date (MM/YY)</string>
+    <string name="cvv">CVV</string>
+    <string name="subscribe">Subscribe</string>
+    <string name="create_new_account">Create New Account</string>
+    <string name="your_profile">Your Profile</string>
+    <string name="get_premium">Get Premium</string>
+    <string name="premium_subscription_active">Premium Subscription Active</string>
+    <string name="confirm_password">Confirm password</string>
 </resources>

@@ -9,6 +9,7 @@ import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
 import android.widget.EditText
+import androidx.activity.result.contract.ActivityResultContracts
 import androidx.activity.viewModels
 import androidx.appcompat.app.AlertDialog
 import androidx.appcompat.app.AppCompatActivity
@@ -44,7 +45,7 @@ class ProfileActivity : AppCompatActivity() {
     private var lastRefreshTime = 0L
     private var adClosedTime = 0L
     private var isAdManuallyClosed = false
-    private val adReshowDelay = 1 * 60 * 1000L
+    private val adReshowDelay = 5 * 60 * 1000L
 
     private val adRefreshRunnable = object : Runnable {
         override fun run() {
@@ -54,6 +55,13 @@ class ProfileActivity : AppCompatActivity() {
             adRefreshHandler.postDelayed(this, adReshowDelay)
         }
     }
+
+    private val paymentLauncher =
+        registerForActivityResult(ActivityResultContracts.StartActivityForResult()) { result ->
+            if (result.resultCode == RESULT_OK) {
+                updateSubscriptionStatus()
+            }
+        }
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -66,10 +74,11 @@ class ProfileActivity : AppCompatActivity() {
         adView = findViewById(R.id.adView)
         setupAdListener()
         val adRequest = AdRequest.Builder().build()
-        adView.loadAd(adRequest)
-        lastRefreshTime = System.currentTimeMillis()
-
-        adRefreshHandler.postDelayed(adRefreshRunnable, adReshowDelay)
+        if (!isSubscribed()) {
+            adView.loadAd(adRequest)
+            lastRefreshTime = System.currentTimeMillis()
+            adRefreshHandler.postDelayed(adRefreshRunnable, adReshowDelay)
+        }
 
         binding.bottomNavigation.selectedItemId = R.id.navigation_profile
         setupViews()
@@ -88,14 +97,18 @@ class ProfileActivity : AppCompatActivity() {
                 }
             }, adReshowDelay)
         }
+
+        updateSubscriptionStatus()
     }
 
     private fun setupAdListener() {
         adView.adListener = object : AdListener() {
             override fun onAdLoaded() {
                 super.onAdLoaded()
-                binding.adView.visibility = View.VISIBLE
-                binding.btnCloseAd.visibility = View.VISIBLE
+                if (!isSubscribed()) {
+                    binding.adView.visibility = View.VISIBLE
+                    binding.btnCloseAd.visibility = View.VISIBLE
+                }
                 isAdManuallyClosed = false
                 Log.d("AdListener", "Ad loaded successfully in ProfileActivity")
             }
@@ -109,41 +122,13 @@ class ProfileActivity : AppCompatActivity() {
     }
 
     private fun reloadAd() {
-        binding.adView.visibility = View.VISIBLE
-        adView.loadAd(AdRequest.Builder().build())
-        lastRefreshTime = System.currentTimeMillis()
-        adRefreshHandler.postDelayed(adRefreshRunnable, adReshowDelay)
-        isAdManuallyClosed = false
-    }
-
-    override fun onResume() {
-        super.onResume()
-        binding.bottomNavigation.selectedItemId = R.id.navigation_profile
-        adView.resume()
-        val currentTime = System.currentTimeMillis()
-
-        if (isAdManuallyClosed && currentTime - adClosedTime >= adReshowDelay) {
-            reloadAd()
-        } else if (!isAdManuallyClosed && currentTime - lastRefreshTime > adReshowDelay && binding.adView.visibility == View.VISIBLE) {
+        if (!isSubscribed()) {
+            binding.adView.visibility = View.VISIBLE
             adView.loadAd(AdRequest.Builder().build())
-            lastRefreshTime = currentTime
-            adRefreshHandler.postDelayed(adRefreshRunnable, adReshowDelay)
-        } else if (binding.adView.visibility == View.VISIBLE) {
+            lastRefreshTime = System.currentTimeMillis()
             adRefreshHandler.postDelayed(adRefreshRunnable, adReshowDelay)
         }
-        loadUserData()
-    }
-
-    override fun onPause() {
-        super.onPause()
-        adView.pause()
-        adRefreshHandler.removeCallbacks(adRefreshRunnable)
-    }
-
-    override fun onDestroy() {
-        super.onDestroy()
-        adView.destroy()
-        adRefreshHandler.removeCallbacks(adRefreshRunnable)
+        isAdManuallyClosed = false
     }
 
     private fun setupViews() {
@@ -160,6 +145,69 @@ class ProfileActivity : AppCompatActivity() {
         binding.btnDeleteAccount.setOnClickListener {
             showDeleteConfirmationDialog()
         }
+
+        binding.btnSubscribeProfile.apply {
+            visibility = View.VISIBLE
+            setOnClickListener {
+                val intent = Intent(this@ProfileActivity, PaymentActivity::class.java).apply {
+                    putExtra("USER_ID", userId)
+                }
+                paymentLauncher.launch(intent)
+            }
+        }
+    }
+
+    private fun updateSubscriptionStatus() {
+        if (isSubscribed()) {
+            binding.btnSubscribeProfile.visibility = View.GONE
+            binding.tvSubscriptionStatus.visibility = View.VISIBLE
+            binding.tvSubscriptionStatus.text = "Premium Subscription Active"
+            binding.adView.visibility = View.GONE
+            binding.btnCloseAd.visibility = View.GONE
+            adRefreshHandler.removeCallbacks(adRefreshRunnable)
+        } else {
+            binding.btnSubscribeProfile.visibility = View.VISIBLE
+            binding.tvSubscriptionStatus.visibility = View.GONE
+            reloadAd()
+        }
+    }
+
+    private fun isSubscribed(): Boolean {
+        val sharedPrefs = getSharedPreferences("UserPrefs", MODE_PRIVATE)
+        return sharedPrefs.getBoolean("isSubscribed_$userId", false)
+    }
+
+    override fun onResume() {
+        super.onResume()
+        binding.bottomNavigation.selectedItemId = R.id.navigation_profile
+        adView.resume()
+        val currentTime = System.currentTimeMillis()
+
+        if (!isSubscribed()) {
+            if (isAdManuallyClosed && currentTime - adClosedTime >= adReshowDelay) {
+                reloadAd()
+            } else if (!isAdManuallyClosed && currentTime - lastRefreshTime > adReshowDelay && binding.adView.visibility == View.VISIBLE) {
+                adView.loadAd(AdRequest.Builder().build())
+                lastRefreshTime = currentTime
+                adRefreshHandler.postDelayed(adRefreshRunnable, adReshowDelay)
+            } else if (binding.adView.visibility == View.VISIBLE) {
+                adRefreshHandler.postDelayed(adRefreshRunnable, adReshowDelay)
+            }
+        }
+        loadUserData()
+        updateSubscriptionStatus()
+    }
+
+    override fun onPause() {
+        super.onPause()
+        adView.pause()
+        adRefreshHandler.removeCallbacks(adRefreshRunnable)
+    }
+
+    override fun onDestroy() {
+        super.onDestroy()
+        adView.destroy()
+        adRefreshHandler.removeCallbacks(adRefreshRunnable)
     }
 
     private fun showDeleteConfirmationDialog() {

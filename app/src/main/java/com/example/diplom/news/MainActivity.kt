@@ -68,15 +68,16 @@ class MainActivity : AppCompatActivity() {
         adView = findViewById(R.id.adView)
         setupAdListener()
         val adRequest = AdRequest.Builder().build()
-        adView.loadAd(adRequest)
-        lastRefreshTime = System.currentTimeMillis()
+        if (!isSubscribed()) {
+            adView.loadAd(adRequest)
+            lastRefreshTime = System.currentTimeMillis()
+            adRefreshHandler.postDelayed(adRefreshRunnable, adReshowDelay)
+        }
 
-        adRefreshHandler.postDelayed(adRefreshRunnable, adReshowDelay)
         setupRecyclerView()
         binding.bottomNavigation.selectedItemId = R.id.navigation_home
         observeNews()
         setupNavigation()
-        updateNavigationSelection()
 
         binding.btnCloseAd.setOnClickListener {
             adView.visibility = View.GONE
@@ -96,8 +97,10 @@ class MainActivity : AppCompatActivity() {
         adView.adListener = object : AdListener() {
             override fun onAdLoaded() {
                 super.onAdLoaded()
-                binding.adView.visibility = View.VISIBLE
-                binding.btnCloseAd.visibility = View.VISIBLE
+                if (!isSubscribed()) {
+                    binding.adView.visibility = View.VISIBLE
+                    binding.btnCloseAd.visibility = View.VISIBLE
+                }
                 isAdManuallyClosed = false
                 Log.d("AdListener", "Ad loaded successfully")
             }
@@ -111,11 +114,18 @@ class MainActivity : AppCompatActivity() {
     }
 
     private fun reloadAd() {
-        binding.adView.visibility = View.VISIBLE
-        adView.loadAd(AdRequest.Builder().build())
-        lastRefreshTime = System.currentTimeMillis()
-        adRefreshHandler.postDelayed(adRefreshRunnable, adReshowDelay)
+        if (!isSubscribed()) {
+            binding.adView.visibility = View.VISIBLE
+            adView.loadAd(AdRequest.Builder().build())
+            lastRefreshTime = System.currentTimeMillis()
+            adRefreshHandler.postDelayed(adRefreshRunnable, adReshowDelay)
+        }
         isAdManuallyClosed = false
+    }
+
+    private fun isSubscribed(): Boolean {
+        val sharedPrefs = getSharedPreferences("UserPrefs", MODE_PRIVATE)
+        return sharedPrefs.getBoolean("isSubscribed_$userId", false)
     }
 
     override fun onPause() {
@@ -140,15 +150,16 @@ class MainActivity : AppCompatActivity() {
         binding.bottomNavigation.selectedItemId = R.id.navigation_home
         adView.resume()
         val currentTime = System.currentTimeMillis()
-
-        if (isAdManuallyClosed && currentTime - adClosedTime >= adReshowDelay) {
-            reloadAd()
-        } else if (!isAdManuallyClosed && currentTime - lastRefreshTime > adReshowDelay && binding.adView.visibility == View.VISIBLE) {
-            adView.loadAd(AdRequest.Builder().build())
-            lastRefreshTime = currentTime
-            adRefreshHandler.postDelayed(adRefreshRunnable, adReshowDelay)
-        } else if (binding.adView.visibility == View.VISIBLE) {
-            adRefreshHandler.postDelayed(adRefreshRunnable, adReshowDelay)
+        if (!isSubscribed()) {
+            if (isAdManuallyClosed && currentTime - adClosedTime >= adReshowDelay) {
+                reloadAd()
+            } else if (!isAdManuallyClosed && currentTime - lastRefreshTime > adReshowDelay && binding.adView.visibility == View.VISIBLE) {
+                adView.loadAd(AdRequest.Builder().build())
+                lastRefreshTime = currentTime
+                adRefreshHandler.postDelayed(adRefreshRunnable, adReshowDelay)
+            } else if (binding.adView.visibility == View.VISIBLE) {
+                adRefreshHandler.postDelayed(adRefreshRunnable, adReshowDelay)
+            }
         }
     }
 

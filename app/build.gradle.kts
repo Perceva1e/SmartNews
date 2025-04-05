@@ -91,10 +91,10 @@ dependencies {
     implementation(libs.dagger.hilt.android)
     kapt (libs.hilt.compiler)
     implementation (libs.androidx.lifecycle.runtime.ktx)
-    implementation (libs.material.v1110)
     implementation (libs.androidx.constraintlayout.v220alpha13)
     implementation (libs.firebase.auth.ktx)
     implementation (libs.play.services.auth)
     implementation(platform(libs.firebase.bom))
     implementation (libs.play.services.ads)
+    implementation (libs.material)
 }

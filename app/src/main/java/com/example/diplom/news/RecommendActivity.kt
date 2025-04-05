@@ -47,7 +47,7 @@ class RecommendActivity : AppCompatActivity() {
     private var lastRefreshTime = 0L
     private var adClosedTime = 0L
     private var isAdManuallyClosed = false
-    private val adReshowDelay = 1 * 60 * 1000L
+    private val adReshowDelay = 5 * 60 * 1000L
 
     private val adRefreshRunnable = object : Runnable {
         override fun run() {
@@ -71,10 +71,11 @@ class RecommendActivity : AppCompatActivity() {
         adView = findViewById(R.id.adView)
         setupAdListener()
         val adRequest = AdRequest.Builder().build()
-        adView.loadAd(adRequest)
-        lastRefreshTime = System.currentTimeMillis()
-
-        adRefreshHandler.postDelayed(adRefreshRunnable, adReshowDelay)
+        if (!isSubscribed()) {
+            adView.loadAd(adRequest)
+            lastRefreshTime = System.currentTimeMillis()
+            adRefreshHandler.postDelayed(adRefreshRunnable, adReshowDelay)
+        }
 
         setupRecyclerView()
         setupNavigation()
@@ -99,8 +100,10 @@ class RecommendActivity : AppCompatActivity() {
         adView.adListener = object : AdListener() {
             override fun onAdLoaded() {
                 super.onAdLoaded()
-                binding.adView.visibility = View.VISIBLE
-                binding.btnCloseAd.visibility = View.VISIBLE
+                if (!isSubscribed()) {
+                    binding.adView.visibility = View.VISIBLE
+                    binding.btnCloseAd.visibility = View.VISIBLE
+                }
                 isAdManuallyClosed = false
                 Log.d("AdListener", "Ad loaded successfully in RecommendActivity")
             }
@@ -114,11 +117,18 @@ class RecommendActivity : AppCompatActivity() {
     }
 
     private fun reloadAd() {
-        binding.adView.visibility = View.VISIBLE
-        adView.loadAd(AdRequest.Builder().build())
-        lastRefreshTime = System.currentTimeMillis()
-        adRefreshHandler.postDelayed(adRefreshRunnable, adReshowDelay)
+        if (!isSubscribed()) {
+            binding.adView.visibility = View.VISIBLE
+            adView.loadAd(AdRequest.Builder().build())
+            lastRefreshTime = System.currentTimeMillis()
+            adRefreshHandler.postDelayed(adRefreshRunnable, adReshowDelay)
+        }
         isAdManuallyClosed = false
+    }
+
+    private fun isSubscribed(): Boolean {
+        val sharedPrefs = getSharedPreferences("UserPrefs", MODE_PRIVATE)
+        return sharedPrefs.getBoolean("isSubscribed_$userId", false)
     }
 
     override fun onStart() {
@@ -139,14 +149,16 @@ class RecommendActivity : AppCompatActivity() {
         adView.resume()
         val currentTime = System.currentTimeMillis()
 
-        if (isAdManuallyClosed && currentTime - adClosedTime >= adReshowDelay) {
-            reloadAd()
-        } else if (!isAdManuallyClosed && currentTime - lastRefreshTime > adReshowDelay && binding.adView.visibility == View.VISIBLE) {
-            adView.loadAd(AdRequest.Builder().build())
-            lastRefreshTime = currentTime
-            adRefreshHandler.postDelayed(adRefreshRunnable, adReshowDelay)
-        } else if (binding.adView.visibility == View.VISIBLE) {
-            adRefreshHandler.postDelayed(adRefreshRunnable, adReshowDelay)
+        if (!isSubscribed()) {
+            if (isAdManuallyClosed && currentTime - adClosedTime >= adReshowDelay) {
+                reloadAd()
+            } else if (!isAdManuallyClosed && currentTime - lastRefreshTime > adReshowDelay && binding.adView.visibility == View.VISIBLE) {
+                adView.loadAd(AdRequest.Builder().build())
+                lastRefreshTime = currentTime
+                adRefreshHandler.postDelayed(adRefreshRunnable, adReshowDelay)
+            } else if (binding.adView.visibility == View.VISIBLE) {
+                adRefreshHandler.postDelayed(adRefreshRunnable, adReshowDelay)
+            }
         }
     }
 
@@ -218,6 +230,7 @@ class RecommendActivity : AppCompatActivity() {
                     applyTransition()
                     true
                 }
+
                 R.id.navigation_saved -> {
                     startActivity(Intent(this, SavedNewsActivity::class.java).apply {
                         putExtra("USER_ID", userId)
@@ -226,6 +239,7 @@ class RecommendActivity : AppCompatActivity() {
                     applyTransition()
                     true
                 }
+
                 R.id.navigation_recommend -> true
                 R.id.navigation_profile -> {
                     startActivity(
@@ -237,6 +251,7 @@ class RecommendActivity : AppCompatActivity() {
                     applyTransition()
                     true
                 }
+
                 else -> false
             }
         }
