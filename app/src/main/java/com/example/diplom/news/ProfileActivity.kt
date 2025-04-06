@@ -114,49 +114,31 @@ class ProfileActivity : BaseActivity() {
             getString(R.string.language_english),
             getString(R.string.language_russian)
         )
-        val adapter = ArrayAdapter(this, android.R.layout.simple_spinner_item, languages)
-        adapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item)
+        val adapter = ArrayAdapter.createFromResource(
+            this,
+            R.array.languages_array,
+            R.layout.spinner_item
+        )
+        adapter.setDropDownViewResource(R.layout.spinner_dropdown_item)
         binding.spinnerLanguage.adapter = adapter
 
         val prefs = getSharedPreferences("UserPrefs", MODE_PRIVATE)
         val currentLanguage = prefs.getString("language_$userId", "en") ?: "en"
-        Log.d("ProfileActivity", "Initial language from prefs: $currentLanguage")
-        binding.spinnerLanguage.setSelection(if (currentLanguage == "ru") 1 else 0, false)
+        val position = if (currentLanguage == "ru") 1 else 0
+        binding.spinnerLanguage.setSelection(position)
 
-        binding.spinnerLanguage.onItemSelectedListener =
-            object : AdapterView.OnItemSelectedListener {
-                private var isFirstSelection = true
-
-                override fun onItemSelected(
-                    parent: AdapterView<*>,
-                    view: View?,
-                    position: Int,
-                    id: Long
-                ) {
-                    if (isFirstSelection) {
-                        isFirstSelection = false
-                        Log.d("ProfileActivity", "Skipping first selection: $position")
-                        return
-                    }
-                    val selectedLanguage = if (position == 0) "en" else "ru"
-                    val currentLanguage = getCurrentLanguage()
-                    Log.d(
-                        "ProfileActivity",
-                        "Spinner selected: $selectedLanguage, current: $currentLanguage"
-                    )
-                    if (selectedLanguage != currentLanguage) {
-                        Log.d("ProfileActivity", "Language changed to: $selectedLanguage")
-                        setLocale(selectedLanguage)
-                        recreate()
-                    } else {
-                        Log.d("ProfileActivity", "No language change needed")
-                    }
-                }
-
-                override fun onNothingSelected(parent: AdapterView<*>) {
-                    Log.d("ProfileActivity", "Nothing selected in spinner")
+        binding.spinnerLanguage.onItemSelectedListener = object : AdapterView.OnItemSelectedListener {
+            override fun onItemSelected(parent: AdapterView<*>, view: View?, position: Int, id: Long) {
+                val selectedLanguage = if (position == 0) "en" else "ru"
+                val currentLanguage = getCurrentLanguage()
+                if (selectedLanguage != currentLanguage) {
+                    setLocale(selectedLanguage)
+                    recreate()
                 }
             }
+
+            override fun onNothingSelected(parent: AdapterView<*>) {}
+        }
     }
 
     private fun getCurrentLanguage(): String {

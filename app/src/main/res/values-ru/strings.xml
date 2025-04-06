@@ -84,4 +84,8 @@
     <string name="error_cvv_required">Требуется действительный CVV (3 цифры)</string>
     <string name="error_expiry_date_required">Требуется действительная дата окончания (ММ/ГГ)</string>
     <string name="error_card_number_required">Требуется действительный номер карты (16 цифр)</string>
+    <string-array name="languages_array">
+        <item>@string/language_english</item>
+        <item>@string/language_russian</item>
+    </string-array>
 </resources>
