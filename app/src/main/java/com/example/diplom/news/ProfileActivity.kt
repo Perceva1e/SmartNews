@@ -1,8 +1,6 @@
 package com.example.diplom.news
 
-import android.content.Context
 import android.content.Intent
-import android.content.res.Configuration
 import android.os.Build
 import android.os.Bundle
 import android.os.Handler
@@ -16,7 +14,6 @@ import android.widget.EditText
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.activity.viewModels
 import androidx.appcompat.app.AlertDialog
-import com.example.diplom.MyApplication
 import com.example.diplom.R
 import com.example.diplom.api.NewsApi
 import com.example.diplom.auth.LoginActivity
@@ -31,7 +28,6 @@ import com.google.android.gms.ads.AdRequest
 import com.google.android.gms.ads.AdView
 import com.google.firebase.auth.EmailAuthProvider
 import com.google.firebase.auth.FirebaseAuth
-import java.util.Locale
 
 class ProfileActivity : BaseActivity() {
     private lateinit var binding: ActivityProfileBinding
@@ -82,7 +78,7 @@ class ProfileActivity : BaseActivity() {
             .putInt("last_user_id", userId)
             .apply()
 
-        adView = findViewById(R.id.adView)
+        adView = binding.adView
         setupAdListener()
         val adRequest = AdRequest.Builder().build()
         if (!isSubscribed()) {
@@ -139,78 +135,43 @@ class ProfileActivity : BaseActivity() {
                 ) {
                     if (isFirstSelection) {
                         isFirstSelection = false
-                        Log.d("ProfileActivity", "Пропуск первой выборки: $position")
+                        Log.d("ProfileActivity", "Skipping first selection: $position")
                         return
                     }
                     val selectedLanguage = if (position == 0) "en" else "ru"
                     val currentLanguage = getCurrentLanguage()
                     Log.d(
                         "ProfileActivity",
-                        "Выбран спиннером: $selectedLanguage, текущий: $currentLanguage"
+                        "Spinner selected: $selectedLanguage, current: $currentLanguage"
                     )
                     if (selectedLanguage != currentLanguage) {
-                        Log.d("ProfileActivity", "Выбранный язык: $selectedLanguage")
-                        saveLanguagePreference(selectedLanguage)
-                        applyLocale(selectedLanguage)
+                        Log.d("ProfileActivity", "Language changed to: $selectedLanguage")
+                        setLocale(selectedLanguage)
                         recreate()
-                        Log.d(
-                            "ProfileActivity",
-                            "Язык изменён на: $selectedLanguage, пересоздание активности"
-                        )
                     } else {
-                        Log.d("ProfileActivity", "Изменение языка не требуется")
+                        Log.d("ProfileActivity", "No language change needed")
                     }
                 }
 
                 override fun onNothingSelected(parent: AdapterView<*>) {
-                    Log.d("ProfileActivity", "Ничего не выбрано в спиннере")
+                    Log.d("ProfileActivity", "Nothing selected in spinner")
                 }
             }
     }
 
-    private fun applyLocale(language: String) {
-        val locale = Locale(language)
-        Locale.setDefault(locale)
-        val config = Configuration(resources.configuration).apply {
-            setLocale(locale)
-            setLayoutDirection(locale)
-        }
-        Log.d("ProfileActivity", "Применение локали: $language")
-        resources.updateConfiguration(config, resources.displayMetrics)
-        createConfigurationContext(config)
-        (application as MyApplication).setLocale(language)
-    }
-
-    private fun saveLanguagePreference(language: String) {
-        val prefs = getSharedPreferences("UserPrefs", MODE_PRIVATE)
-        prefs.edit().putString("language_$userId", language).apply()
-        Log.d("ProfileActivity", "Saved language preference: $language")
-    }
-
     private fun getCurrentLanguage(): String {
         val prefs = getSharedPreferences("UserPrefs", MODE_PRIVATE)
-        val lang = prefs.getString("language_$userId", "en") ?: "en"
-        Log.d("ProfileActivity", "Current language: $lang")
-        return lang
+        return prefs.getString("language_$userId", "en") ?: "en"
     }
 
-    override fun attachBaseContext(newBase: Context) {
-        val prefs = newBase.getSharedPreferences("UserPrefs", MODE_PRIVATE)
-        val lastUserId = prefs.getInt("last_user_id", -1)
-        val language = if (lastUserId != -1) {
-            prefs.getString("language_$lastUserId", "en") ?: "en"
-        } else {
-            "en"
+    override fun setLocale(language: String, notify: Boolean) {
+        val prefs = getSharedPreferences("UserPrefs", MODE_PRIVATE)
+        with(prefs.edit()) {
+            putString("language_$userId", language)
+            apply()
         }
-        val locale = Locale(language)
-        Locale.setDefault(locale)
-        val config = newBase.resources.configuration.apply {
-            setLocale(locale)
-            setLayoutDirection(locale)
-        }
-        val context = newBase.createConfigurationContext(config)
-        Log.d("ProfileActivity", "attachBaseContext установил локаль: $language для last_user_id: $lastUserId")
-        super.attachBaseContext(context)
+        super.setLocale(language, notify)
+        Log.d("ProfileActivity", "Locale set to: $language for userId: $userId")
     }
 
     private fun setupAdListener() {
@@ -273,7 +234,7 @@ class ProfileActivity : BaseActivity() {
         if (isSubscribed()) {
             binding.btnSubscribeProfile.visibility = View.GONE
             binding.tvSubscriptionStatus.visibility = View.VISIBLE
-            binding.tvSubscriptionStatus.text = "Premium Subscription Active"
+            binding.tvSubscriptionStatus.text = getString(R.string.premium_subscription_active)
             binding.adView.visibility = View.GONE
             binding.btnCloseAd.visibility = View.GONE
             adRefreshHandler.removeCallbacks(adRefreshRunnable)

@@ -1,6 +1,9 @@
 package com.example.diplom.news
 
+import android.content.BroadcastReceiver
+import android.content.Context
 import android.content.Intent
+import android.content.IntentFilter
 import android.os.Build
 import android.os.Bundle
 import android.os.Handler
@@ -8,6 +11,7 @@ import android.os.Looper
 import android.util.Log
 import android.view.View
 import androidx.activity.viewModels
+import androidx.localbroadcastmanager.content.LocalBroadcastManager
 import androidx.recyclerview.widget.LinearLayoutManager
 import com.example.diplom.R
 import com.example.diplom.api.NewsApi
@@ -48,6 +52,13 @@ class SavedNewsActivity : BaseActivity() {
     private var isAdManuallyClosed = false
     private val adReshowDelay = 5 * 60 * 1000L
 
+    private val languageChangeReceiver = object : BroadcastReceiver() {
+        override fun onReceive(context: Context?, intent: Intent?) {
+            Log.d("SavedNewsActivity", "Received language change broadcast")
+            recreate()
+        }
+    }
+
     private val adRefreshRunnable = object : Runnable {
         override fun run() {
             Log.d("AdRefresh", "Refreshing ad in SavedNewsActivity")
@@ -65,7 +76,7 @@ class SavedNewsActivity : BaseActivity() {
         userId = intent.getIntExtra("USER_ID", -1)
         if (userId == -1) finish()
 
-        adView = findViewById(R.id.adView)
+        adView = binding.adView
         setupAdListener()
         val adRequest = AdRequest.Builder().build()
         if (!isSubscribed()) {
@@ -91,6 +102,9 @@ class SavedNewsActivity : BaseActivity() {
                 }
             }, adReshowDelay)
         }
+
+        LocalBroadcastManager.getInstance(this)
+            .registerReceiver(languageChangeReceiver, IntentFilter(ACTION_LANGUAGE_CHANGED))
     }
 
     private fun setupAdListener() {
@@ -139,6 +153,7 @@ class SavedNewsActivity : BaseActivity() {
 
     override fun onResume() {
         super.onResume()
+        loadLocale()
         binding.bottomNavigation.selectedItemId = R.id.navigation_saved
         adView.resume()
         val currentTime = System.currentTimeMillis()
@@ -172,6 +187,7 @@ class SavedNewsActivity : BaseActivity() {
         super.onDestroy()
         adView.destroy()
         adRefreshHandler.removeCallbacks(adRefreshRunnable)
+        LocalBroadcastManager.getInstance(this).unregisterReceiver(languageChangeReceiver)
     }
 
     private fun setupRecyclerView() {

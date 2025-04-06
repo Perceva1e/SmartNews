@@ -1,6 +1,9 @@
 package com.example.diplom.news
 
+import android.content.BroadcastReceiver
+import android.content.Context
 import android.content.Intent
+import android.content.IntentFilter
 import android.os.Build
 import android.os.Bundle
 import android.os.Handler
@@ -8,6 +11,7 @@ import android.os.Looper
 import android.util.Log
 import android.view.View
 import androidx.activity.viewModels
+import androidx.localbroadcastmanager.content.LocalBroadcastManager
 import androidx.recyclerview.widget.LinearLayoutManager
 import com.example.diplom.R
 import com.example.diplom.api.NewsApi
@@ -49,6 +53,13 @@ class RecommendActivity : BaseActivity() {
     private var isAdManuallyClosed = false
     private val adReshowDelay = 5 * 60 * 1000L
 
+    private val languageChangeReceiver = object : BroadcastReceiver() {
+        override fun onReceive(context: Context?, intent: Intent?) {
+            Log.d("RecommendActivity", "Received language change broadcast")
+            recreate()
+        }
+    }
+
     private val adRefreshRunnable = object : Runnable {
         override fun run() {
             Log.d("AdRefresh", "Refreshing ad in RecommendActivity")
@@ -68,7 +79,7 @@ class RecommendActivity : BaseActivity() {
             return
         }
 
-        adView = findViewById(R.id.adView)
+        adView = binding.adView
         setupAdListener()
         val adRequest = AdRequest.Builder().build()
         if (!isSubscribed()) {
@@ -94,6 +105,9 @@ class RecommendActivity : BaseActivity() {
                 }
             }, adReshowDelay)
         }
+
+        LocalBroadcastManager.getInstance(this)
+            .registerReceiver(languageChangeReceiver, IntentFilter(ACTION_LANGUAGE_CHANGED))
     }
 
     private fun setupAdListener() {
@@ -145,6 +159,7 @@ class RecommendActivity : BaseActivity() {
 
     override fun onResume() {
         super.onResume()
+        loadLocale()
         binding.bottomNavigation.selectedItemId = R.id.navigation_recommend
         adView.resume()
         val currentTime = System.currentTimeMillis()
@@ -178,6 +193,7 @@ class RecommendActivity : BaseActivity() {
         super.onDestroy()
         adView.destroy()
         adRefreshHandler.removeCallbacks(adRefreshRunnable)
+        LocalBroadcastManager.getInstance(this).unregisterReceiver(languageChangeReceiver)
     }
 
     private fun setupRecyclerView() {

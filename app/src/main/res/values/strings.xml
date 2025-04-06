@@ -81,4 +81,7 @@
     <string name="confirm_deletion">Enter your password to confirm deletion</string>
     <string name="password_required">Password required</string>
     <string name="cancel">Cancel</string>
+    <string name="error_cvv_required">Valid CVV required (3 digits)</string>
+    <string name="error_expiry_date_required">Valid expiry date required (MM/YY)</string>
+    <string name="error_card_number_required">Valid card number required (16 digits)</string>
 </resources>

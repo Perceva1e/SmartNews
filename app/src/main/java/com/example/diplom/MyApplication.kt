@@ -16,7 +16,7 @@ class MyApplication : Application() {
         applyUserLanguage()
     }
 
-    private fun applyUserLanguage() {
+    fun applyUserLanguage() {
         val prefs = getSharedPreferences("UserPrefs", MODE_PRIVATE)
         val defaultUserId = prefs.getInt("last_user_id", -1)
         val language = if (defaultUserId != -1) {
@@ -48,7 +48,7 @@ class MyApplication : Application() {
         }
         val locale = Locale(language)
         Locale.setDefault(locale)
-        val config = base.resources.configuration.apply {
+        val config = Configuration().apply {
             setLocale(locale)
             setLayoutDirection(locale)
         }

@@ -139,7 +139,6 @@
                         android:textColor="@color/text_primary" />
                 </com.google.android.material.textfield.TextInputLayout>
             </LinearLayout>
-
             <com.google.android.material.button.MaterialButton
                 android:id="@+id/btnSubscribe"
                 style="@style/Widget.Material3.Button.ElevatedButton"
@@ -148,10 +147,10 @@
                 android:layout_marginTop="24dp"
                 android:text="@string/subscribe"
                 android:textColor="#FFFFFF"
-                android:background="@drawable/gradient_button"
-                android:backgroundTint="@null"
+                app:backgroundTint="#6200EE"
                 app:icon="@drawable/ic_star"
                 app:iconTint="#FFFFFF" />
+
         </LinearLayout>
     </androidx.cardview.widget.CardView>
 </androidx.constraintlayout.widget.ConstraintLayout>
