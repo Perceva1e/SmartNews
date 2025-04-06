@@ -30,6 +30,10 @@ class PaymentActivity : BaseActivity() {
         userId = intent.getIntExtra("USER_ID", -1)
         if (userId == -1) finish()
 
+        binding.btnBack.setOnClickListener {
+            finish()
+        }
+
         binding.btnSubscribe.setOnClickListener {
             if (validateInput()) {
                 saveSubscriptionStatus(true)
