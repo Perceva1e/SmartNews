@@ -89,4 +89,27 @@ class NewsRepository(
             throw Exception("Database error: ${e.message}")
         }
     }
+
+    suspend fun getUserById(userId: Int): User? = withContext(Dispatchers.IO) {
+        userDao.getUserById(userId)
+    }
+
+    suspend fun updateUserCategories(userId: Int, selectedCategories: String?) =
+        withContext(Dispatchers.IO) {
+            userDao.updateUserCategories(userId, selectedCategories)
+        }
+
+    suspend fun getTopNewsForUser(userId: Int): List<News> = withContext(Dispatchers.IO) {
+        val user = getUserById(userId)
+        val categories =
+            user?.selectedCategories?.split(",")?.filter { it.isNotBlank() } ?: emptyList()
+
+        if (categories.isEmpty()) {
+            newsApi.getTopHeadlines().articles
+        } else {
+            categories.flatMap { category ->
+                newsApi.getTopHeadlines(category = category, pageSize = 20).articles
+            }.distinctBy { it.url }
+        }
+    }
 }

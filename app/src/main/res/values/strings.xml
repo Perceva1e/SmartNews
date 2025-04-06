@@ -84,6 +84,15 @@
     <string name="error_cvv_required">Valid CVV required (3 digits)</string>
     <string name="error_expiry_date_required">Valid expiry date required (MM/YY)</string>
     <string name="error_card_number_required">Valid card number required (16 digits)</string>
+    <string name="choose_category_of_news">Choose category of news</string>
+    <string name="save_choice">Save choice</string>
+    <string name="category_business">Business</string>
+    <string name="category_entertainment">Entertainment</string>
+    <string name="category_general">General</string>
+    <string name="category_health">Health</string>
+    <string name="category_science">Science</string>
+    <string name="category_sports">Sports</string>
+    <string name="category_technology">Technology</string>
     <string-array name="languages_array">
         <item>@string/language_english</item>
         <item>@string/language_russian</item>

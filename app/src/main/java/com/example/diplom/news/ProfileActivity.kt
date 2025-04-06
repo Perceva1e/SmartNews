@@ -73,6 +73,13 @@ class ProfileActivity : BaseActivity() {
         userId = intent.getIntExtra("USER_ID", -1)
         if (userId == -1) finish()
 
+        binding.btnSelectCategories.setOnClickListener {
+            val intent = Intent(this, CategorySelectionActivity::class.java).apply {
+                putExtra("USER_ID", userId)
+            }
+            startActivity(intent)
+        }
+
         getSharedPreferences("UserPrefs", MODE_PRIVATE)
             .edit()
             .putInt("last_user_id", userId)
@@ -127,18 +134,24 @@ class ProfileActivity : BaseActivity() {
         val position = if (currentLanguage == "ru") 1 else 0
         binding.spinnerLanguage.setSelection(position)
 
-        binding.spinnerLanguage.onItemSelectedListener = object : AdapterView.OnItemSelectedListener {
-            override fun onItemSelected(parent: AdapterView<*>, view: View?, position: Int, id: Long) {
-                val selectedLanguage = if (position == 0) "en" else "ru"
-                val currentLanguage = getCurrentLanguage()
-                if (selectedLanguage != currentLanguage) {
-                    setLocale(selectedLanguage)
-                    recreate()
+        binding.spinnerLanguage.onItemSelectedListener =
+            object : AdapterView.OnItemSelectedListener {
+                override fun onItemSelected(
+                    parent: AdapterView<*>,
+                    view: View?,
+                    position: Int,
+                    id: Long
+                ) {
+                    val selectedLanguage = if (position == 0) "en" else "ru"
+                    val currentLanguage = getCurrentLanguage()
+                    if (selectedLanguage != currentLanguage) {
+                        setLocale(selectedLanguage)
+                        recreate()
+                    }
                 }
-            }
 
-            override fun onNothingSelected(parent: AdapterView<*>) {}
-        }
+                override fun onNothingSelected(parent: AdapterView<*>) {}
+            }
     }
 
     private fun getCurrentLanguage(): String {

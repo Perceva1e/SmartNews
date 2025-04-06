@@ -84,6 +84,15 @@
     <string name="error_cvv_required">Требуется действительный CVV (3 цифры)</string>
     <string name="error_expiry_date_required">Требуется действительная дата окончания (ММ/ГГ)</string>
     <string name="error_card_number_required">Требуется действительный номер карты (16 цифр)</string>
+    <string name="choose_category_of_news">Выберите категорию новостей</string>
+    <string name="save_choice">Сохранить выбор</string>
+    <string name="category_business">Бизнес</string>
+    <string name="category_entertainment">Развлечения</string>
+    <string name="category_general">Общие</string>
+    <string name="category_health">Здоровье</string>
+    <string name="category_science">Наука</string>
+    <string name="category_sports">Спорт</string>
+    <string name="category_technology">Технологии</string>
     <string-array name="languages_array">
         <item>@string/language_english</item>
         <item>@string/language_russian</item>

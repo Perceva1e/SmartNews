@@ -16,5 +16,8 @@ data class User(
     val email: String,
 
     @ColumnInfo(name = "password")
-    val password: String
+    val password: String,
+
+    @ColumnInfo(name = "selected_categories")
+    val selectedCategories: String? = null
 )

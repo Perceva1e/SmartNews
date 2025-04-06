@@ -157,7 +157,7 @@ class MainActivity : BaseActivity() {
 
     private fun startMainActivity() {
         binding.bottomNavigation.selectedItemId = R.id.navigation_home
-        viewModel.loadNews()
+        viewModel.loadNews(userId)
     }
 
     override fun onResume() {

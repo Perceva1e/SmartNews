@@ -37,4 +37,7 @@ interface UserDao {
 
     @Query("UPDATE users SET password = :newPassword WHERE email = :email")
     suspend fun updatePassword(email: String, newPassword: String): Int
+
+    @Query("UPDATE users SET selected_categories = :selectedCategories WHERE id = :userId")
+    suspend fun updateUserCategories(userId: Int, selectedCategories: String?)
 }

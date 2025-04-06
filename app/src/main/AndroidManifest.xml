@@ -36,6 +36,9 @@
             android:name=".news.ProfileActivity"
             android:exported="false" />
         <activity
+            android:name=".news.CategorySelectionActivity"
+            android:exported="false" />
+        <activity
             android:name=".news.ResetPasswordActivity"
             android:exported="false" />
         <activity android:name=".news.PaymentActivity" />

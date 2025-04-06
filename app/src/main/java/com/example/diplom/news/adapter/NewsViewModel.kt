@@ -15,7 +15,6 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
-import java.io.IOException
 
 class NewsViewModel(
     private val repository: NewsRepository
@@ -61,23 +60,17 @@ class NewsViewModel(
         }
     }
 
-    init {
-        loadNews()
-    }
-
-    fun loadNews() {
+    fun loadNews(userId: Int) {
         viewModelScope.launch {
             _newsState.postValue(ResultState.Loading)
             try {
-                val news = repository.getTopNews()
-                if (news.isEmpty()) {
+                val newsList = repository.getTopNewsForUser(userId)
+                if (newsList.isEmpty()) {
                     _newsState.postValue(ResultState.Error("No news found"))
                 } else {
-                    _newsState.postValue(ResultState.Success(news))
-                    _news.postValue(news)
+                    _newsState.postValue(ResultState.Success(newsList))
+                    _news.postValue(newsList)
                 }
-            } catch (_: IOException) {
-                _newsState.postValue(ResultState.Error("Check internet connection"))
             } catch (e: Exception) {
                 _newsState.postValue(ResultState.Error("Error: ${e.message}"))
             }
@@ -224,4 +217,10 @@ class NewsViewModel(
         }
     }
 
+    fun updateUserCategories(userId: Int, selectedCategories: String?) {
+        viewModelScope.launch {
+            repository.updateUserCategories(userId, selectedCategories)
+            loadUser(userId)
+        }
+    }
 }
