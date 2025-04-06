@@ -1,4 +1,4 @@
-package com.example.diplom.news
+package com.example.diplom.news.adapter
 
 import android.util.Log
 import androidx.lifecycle.LiveData
@@ -8,7 +8,6 @@ import androidx.lifecycle.viewModelScope
 import com.example.diplom.api.model.News
 import com.example.diplom.database.entity.SavedNews
 import com.example.diplom.database.entity.User
-import com.example.diplom.news.adapter.RecommendationEngine
 import com.example.diplom.repository.NewsRepository
 import com.example.diplom.utils.ResultState
 import com.google.firebase.auth.FirebaseAuth

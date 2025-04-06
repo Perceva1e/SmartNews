@@ -8,7 +8,6 @@ import android.os.Looper
 import android.util.Log
 import android.view.View
 import androidx.activity.viewModels
-import androidx.appcompat.app.AppCompatActivity
 import androidx.lifecycle.lifecycleScope
 import androidx.recyclerview.widget.LinearLayoutManager
 import com.example.diplom.R
@@ -17,6 +16,7 @@ import com.example.diplom.auth.LoginActivity
 import com.example.diplom.database.AppDatabase
 import com.example.diplom.databinding.ActivityMainBinding
 import com.example.diplom.news.adapter.NewsAdapter
+import com.example.diplom.news.adapter.NewsViewModel
 import com.example.diplom.repository.NewsRepository
 import com.example.diplom.utils.AppEvents
 import com.example.diplom.utils.showToast
@@ -27,7 +27,7 @@ import com.google.android.gms.ads.AdView
 import com.google.firebase.auth.FirebaseAuth
 import kotlinx.coroutines.launch
 
-class MainActivity : AppCompatActivity() {
+class MainActivity : BaseActivity() {
     private lateinit var binding: ActivityMainBinding
     private val viewModel: NewsViewModel by viewModels {
         NewsViewModelFactory(

@@ -6,7 +6,6 @@ import android.os.Bundle
 import android.os.Handler
 import android.os.Looper
 import android.util.Log
-import androidx.appcompat.app.AppCompatActivity
 import com.example.diplom.R
 import com.example.diplom.auth.RegisterActivity
 import com.example.diplom.database.AppDatabase
@@ -19,14 +18,14 @@ import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import java.util.concurrent.TimeUnit
 
-class EmailVerificationActivity : AppCompatActivity() {
+class EmailVerificationActivity : BaseActivity() {
     private lateinit var binding: ActivityEmailVerificationBinding
     private lateinit var auth: FirebaseAuth
     private lateinit var handler: Handler
     private val checkInterval = 5000L
     private var userId: Int = -1
     private var lastResendTime = 0L
-    private val RESEND_DELAY = TimeUnit.MINUTES.toMillis(1)
+    private val resendDelay = TimeUnit.MINUTES.toMillis(1)
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -59,8 +58,8 @@ class EmailVerificationActivity : AppCompatActivity() {
 
     private fun resendVerificationEmail() {
         val currentTime = System.currentTimeMillis()
-        if (currentTime - lastResendTime < RESEND_DELAY) {
-            val remainingTime = RESEND_DELAY - (currentTime - lastResendTime)
+        if (currentTime - lastResendTime < resendDelay) {
+            val remainingTime = resendDelay - (currentTime - lastResendTime)
             val minutes = TimeUnit.MILLISECONDS.toMinutes(remainingTime)
             showToast(getString(R.string.resend_limit, minutes + 1))
             return

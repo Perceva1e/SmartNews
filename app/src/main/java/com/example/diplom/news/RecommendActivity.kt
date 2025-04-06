@@ -8,13 +8,13 @@ import android.os.Looper
 import android.util.Log
 import android.view.View
 import androidx.activity.viewModels
-import androidx.appcompat.app.AppCompatActivity
 import androidx.recyclerview.widget.LinearLayoutManager
 import com.example.diplom.R
 import com.example.diplom.api.NewsApi
 import com.example.diplom.database.AppDatabase
 import com.example.diplom.databinding.ActivityRecommendBinding
 import com.example.diplom.news.adapter.NewsAdapter
+import com.example.diplom.news.adapter.NewsViewModel
 import com.example.diplom.repository.NewsRepository
 import com.example.diplom.utils.AppEvents
 import com.example.diplom.utils.showToast
@@ -27,7 +27,7 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.launch
 
-class RecommendActivity : AppCompatActivity() {
+class RecommendActivity : BaseActivity() {
     private lateinit var binding: ActivityRecommendBinding
     private var eventsJob: Job? = null
     private val viewModel: NewsViewModel by viewModels {

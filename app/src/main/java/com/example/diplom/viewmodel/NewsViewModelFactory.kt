@@ -2,7 +2,7 @@ package com.example.diplom.viewmodel
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.ViewModelProvider
-import com.example.diplom.news.NewsViewModel
+import com.example.diplom.news.adapter.NewsViewModel
 import com.example.diplom.repository.NewsRepository
 
 class NewsViewModelFactory(

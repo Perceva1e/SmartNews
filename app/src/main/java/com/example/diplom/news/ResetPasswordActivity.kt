@@ -2,12 +2,11 @@ package com.example.diplom.news
 
 import android.os.Bundle
 import androidx.activity.OnBackPressedCallback
-import androidx.appcompat.app.AppCompatActivity
 import com.example.diplom.databinding.ActivityResetPasswordBinding
 import com.example.diplom.utils.showToast
 import com.google.firebase.auth.FirebaseAuth
 
-class ResetPasswordActivity : AppCompatActivity() {
+class ResetPasswordActivity : BaseActivity() {
     private lateinit var binding: ActivityResetPasswordBinding
     private lateinit var auth: FirebaseAuth
 

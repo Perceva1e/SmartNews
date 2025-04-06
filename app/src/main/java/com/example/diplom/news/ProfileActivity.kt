@@ -1,6 +1,8 @@
 package com.example.diplom.news
 
+import android.content.Context
 import android.content.Intent
+import android.content.res.Configuration
 import android.os.Build
 import android.os.Bundle
 import android.os.Handler
@@ -8,16 +10,19 @@ import android.os.Looper
 import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
+import android.widget.AdapterView
+import android.widget.ArrayAdapter
 import android.widget.EditText
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.activity.viewModels
 import androidx.appcompat.app.AlertDialog
-import androidx.appcompat.app.AppCompatActivity
+import com.example.diplom.MyApplication
 import com.example.diplom.R
 import com.example.diplom.api.NewsApi
 import com.example.diplom.auth.LoginActivity
 import com.example.diplom.database.AppDatabase
 import com.example.diplom.databinding.ActivityProfileBinding
+import com.example.diplom.news.adapter.NewsViewModel
 import com.example.diplom.repository.NewsRepository
 import com.example.diplom.utils.showToast
 import com.example.diplom.viewmodel.NewsViewModelFactory
@@ -26,8 +31,9 @@ import com.google.android.gms.ads.AdRequest
 import com.google.android.gms.ads.AdView
 import com.google.firebase.auth.EmailAuthProvider
 import com.google.firebase.auth.FirebaseAuth
+import java.util.Locale
 
-class ProfileActivity : AppCompatActivity() {
+class ProfileActivity : BaseActivity() {
     private lateinit var binding: ActivityProfileBinding
     private val viewModel: NewsViewModel by viewModels {
         NewsViewModelFactory(
@@ -71,6 +77,11 @@ class ProfileActivity : AppCompatActivity() {
         userId = intent.getIntExtra("USER_ID", -1)
         if (userId == -1) finish()
 
+        getSharedPreferences("UserPrefs", MODE_PRIVATE)
+            .edit()
+            .putInt("last_user_id", userId)
+            .apply()
+
         adView = findViewById(R.id.adView)
         setupAdListener()
         val adRequest = AdRequest.Builder().build()
@@ -84,6 +95,7 @@ class ProfileActivity : AppCompatActivity() {
         setupViews()
         loadUserData()
         setupNavigation()
+        setupLanguageSpinner()
 
         binding.btnCloseAd.setOnClickListener {
             adView.visibility = View.GONE
@@ -99,6 +111,106 @@ class ProfileActivity : AppCompatActivity() {
         }
 
         updateSubscriptionStatus()
+    }
+
+    private fun setupLanguageSpinner() {
+        val languages = arrayOf(
+            getString(R.string.language_english),
+            getString(R.string.language_russian)
+        )
+        val adapter = ArrayAdapter(this, android.R.layout.simple_spinner_item, languages)
+        adapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item)
+        binding.spinnerLanguage.adapter = adapter
+
+        val prefs = getSharedPreferences("UserPrefs", MODE_PRIVATE)
+        val currentLanguage = prefs.getString("language_$userId", "en") ?: "en"
+        Log.d("ProfileActivity", "Initial language from prefs: $currentLanguage")
+        binding.spinnerLanguage.setSelection(if (currentLanguage == "ru") 1 else 0, false)
+
+        binding.spinnerLanguage.onItemSelectedListener =
+            object : AdapterView.OnItemSelectedListener {
+                private var isFirstSelection = true
+
+                override fun onItemSelected(
+                    parent: AdapterView<*>,
+                    view: View?,
+                    position: Int,
+                    id: Long
+                ) {
+                    if (isFirstSelection) {
+                        isFirstSelection = false
+                        Log.d("ProfileActivity", "Пропуск первой выборки: $position")
+                        return
+                    }
+                    val selectedLanguage = if (position == 0) "en" else "ru"
+                    val currentLanguage = getCurrentLanguage()
+                    Log.d(
+                        "ProfileActivity",
+                        "Выбран спиннером: $selectedLanguage, текущий: $currentLanguage"
+                    )
+                    if (selectedLanguage != currentLanguage) {
+                        Log.d("ProfileActivity", "Выбранный язык: $selectedLanguage")
+                        saveLanguagePreference(selectedLanguage)
+                        applyLocale(selectedLanguage)
+                        recreate()
+                        Log.d(
+                            "ProfileActivity",
+                            "Язык изменён на: $selectedLanguage, пересоздание активности"
+                        )
+                    } else {
+                        Log.d("ProfileActivity", "Изменение языка не требуется")
+                    }
+                }
+
+                override fun onNothingSelected(parent: AdapterView<*>) {
+                    Log.d("ProfileActivity", "Ничего не выбрано в спиннере")
+                }
+            }
+    }
+
+    private fun applyLocale(language: String) {
+        val locale = Locale(language)
+        Locale.setDefault(locale)
+        val config = Configuration(resources.configuration).apply {
+            setLocale(locale)
+            setLayoutDirection(locale)
+        }
+        Log.d("ProfileActivity", "Применение локали: $language")
+        resources.updateConfiguration(config, resources.displayMetrics)
+        createConfigurationContext(config)
+        (application as MyApplication).setLocale(language)
+    }
+
+    private fun saveLanguagePreference(language: String) {
+        val prefs = getSharedPreferences("UserPrefs", MODE_PRIVATE)
+        prefs.edit().putString("language_$userId", language).apply()
+        Log.d("ProfileActivity", "Saved language preference: $language")
+    }
+
+    private fun getCurrentLanguage(): String {
+        val prefs = getSharedPreferences("UserPrefs", MODE_PRIVATE)
+        val lang = prefs.getString("language_$userId", "en") ?: "en"
+        Log.d("ProfileActivity", "Current language: $lang")
+        return lang
+    }
+
+    override fun attachBaseContext(newBase: Context) {
+        val prefs = newBase.getSharedPreferences("UserPrefs", MODE_PRIVATE)
+        val lastUserId = prefs.getInt("last_user_id", -1)
+        val language = if (lastUserId != -1) {
+            prefs.getString("language_$lastUserId", "en") ?: "en"
+        } else {
+            "en"
+        }
+        val locale = Locale(language)
+        Locale.setDefault(locale)
+        val config = newBase.resources.configuration.apply {
+            setLocale(locale)
+            setLayoutDirection(locale)
+        }
+        val context = newBase.createConfigurationContext(config)
+        Log.d("ProfileActivity", "attachBaseContext установил локаль: $language для last_user_id: $lastUserId")
+        super.attachBaseContext(context)
     }
 
     private fun setupAdListener() {
@@ -215,18 +327,18 @@ class ProfileActivity : AppCompatActivity() {
         val passwordInput = dialogView.findViewById<EditText>(R.id.etPassword)
 
         AlertDialog.Builder(this)
-            .setTitle("Delete Account")
-            .setMessage("Enter your password to confirm deletion")
+            .setTitle(getString(R.string.delete_account))
+            .setMessage(getString(R.string.confirm_deletion))
             .setView(dialogView)
-            .setPositiveButton("Delete") { _, _ ->
+            .setPositiveButton(getString(R.string.delete)) { _, _ ->
                 val password = passwordInput.text.toString()
                 if (password.isNotEmpty()) {
                     deleteUser(password)
                 } else {
-                    passwordInput.error = "Password required"
+                    passwordInput.error = getString(R.string.password_required)
                 }
             }
-            .setNegativeButton("Cancel", null)
+            .setNegativeButton(getString(R.string.cancel), null)
             .show()
     }
 
@@ -275,11 +387,11 @@ class ProfileActivity : AppCompatActivity() {
     private fun validateInput(name: String, email: String): Boolean {
         var isValid = true
         if (name.isEmpty()) {
-            binding.tilName.error = "Name required"
+            binding.tilName.error = getString(R.string.error_name_required)
             isValid = false
         }
         if (email.isEmpty() || !android.util.Patterns.EMAIL_ADDRESS.matcher(email).matches()) {
-            binding.tilEmail.error = "Valid email required"
+            binding.tilEmail.error = getString(R.string.error_email_required)
             isValid = false
         }
         return isValid

@@ -2,11 +2,11 @@ package com.example.diplom.auth
 
 import android.content.Intent
 import android.os.Bundle
-import androidx.appcompat.app.AppCompatActivity
 import androidx.lifecycle.ViewModelProvider
 import com.example.diplom.api.NewsApi
 import com.example.diplom.database.AppDatabase
 import com.example.diplom.databinding.ActivityLoginBinding
+import com.example.diplom.news.BaseActivity
 import com.example.diplom.news.MainActivity
 import com.example.diplom.news.ResetPasswordActivity
 import com.example.diplom.repository.NewsRepository
@@ -19,7 +19,7 @@ import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 
-class LoginActivity : AppCompatActivity() {
+class LoginActivity : BaseActivity() {
     private lateinit var binding: ActivityLoginBinding
     private lateinit var viewModel: AuthViewModel
     private lateinit var auth: FirebaseAuth

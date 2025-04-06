@@ -8,12 +8,12 @@ import android.os.Looper
 import android.util.Log
 import android.view.View
 import androidx.activity.viewModels
-import androidx.appcompat.app.AppCompatActivity
 import androidx.recyclerview.widget.LinearLayoutManager
 import com.example.diplom.R
 import com.example.diplom.api.NewsApi
 import com.example.diplom.database.AppDatabase
 import com.example.diplom.databinding.ActivitySavedNewsBinding
+import com.example.diplom.news.adapter.NewsViewModel
 import com.example.diplom.news.adapter.SavedNewsAdapter
 import com.example.diplom.repository.NewsRepository
 import com.example.diplom.utils.AppEvents
@@ -26,7 +26,7 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.launch
 
-class SavedNewsActivity : AppCompatActivity() {
+class SavedNewsActivity : BaseActivity() {
     private var eventsJob: Job? = null
     private lateinit var binding: ActivitySavedNewsBinding
     private val viewModel: NewsViewModel by viewModels {

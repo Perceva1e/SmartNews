@@ -19,7 +19,7 @@
             style="@style/TextAppearance.Material3.TitleMedium"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:text="Create New Account"
+            android:text="@string/create_new_account"
             android:textAlignment="center"
             android:textColor="@color/primary"
             app:layout_constraintTop_toTopOf="parent"

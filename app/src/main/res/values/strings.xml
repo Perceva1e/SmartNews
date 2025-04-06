@@ -76,4 +76,9 @@
     <string name="get_premium">Get Premium</string>
     <string name="premium_subscription_active">Premium Subscription Active</string>
     <string name="confirm_password">Confirm password</string>
+    <string name="language_english">English</string>
+    <string name="language_russian">Русский</string>
+    <string name="confirm_deletion">Enter your password to confirm deletion</string>
+    <string name="password_required">Password required</string>
+    <string name="cancel">Cancel</string>
 </resources>

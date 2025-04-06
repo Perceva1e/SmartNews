@@ -1,11 +1,10 @@
 package com.example.diplom.news
 
 import android.os.Bundle
-import androidx.appcompat.app.AppCompatActivity
 import com.example.diplom.databinding.ActivityPaymentBinding
 import com.example.diplom.utils.showToast
 
-class PaymentActivity : AppCompatActivity() {
+class PaymentActivity : BaseActivity() {
     private lateinit var binding: ActivityPaymentBinding
     private var userId: Int = -1
 
