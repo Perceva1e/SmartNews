@@ -97,4 +97,6 @@
         <item>@string/language_english</item>
         <item>@string/language_russian</item>
     </string-array>
+    <string name="english_flag">English flag</string>
+    <string name="russian_flag">Russian flag</string>
 </resources>

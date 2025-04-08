@@ -48,7 +48,11 @@ class ProfileActivity : BaseActivity() {
     private var adClosedTime = 0L
     private var isAdManuallyClosed = false
     private val adReshowDelay = 5 * 60 * 1000L
-
+    private val currencySymbols = mapOf(
+        "USD" to "$",
+        "EUR" to "€",
+        "RUB" to "₽"
+    )
     private val adRefreshRunnable = object : Runnable {
         override fun run() {
             Log.d("AdRefresh", "Refreshing ad in ProfileActivity")
@@ -99,7 +103,7 @@ class ProfileActivity : BaseActivity() {
         loadUserData()
         setupNavigation()
         setupLanguageSpinner()
-
+        setupCurrencySpinner()
         binding.btnCloseAd.setOnClickListener {
             adView.visibility = View.GONE
             binding.btnCloseAd.visibility = View.GONE
@@ -134,6 +138,23 @@ class ProfileActivity : BaseActivity() {
         val position = if (currentLanguage == "ru") 1 else 0
         binding.spinnerLanguage.setSelection(position)
 
+        when (currentLanguage) {
+            "en" -> {
+                binding.ivFlag.setImageResource(R.drawable.flag_usa)
+                binding.ivFlag.contentDescription = getString(R.string.english_flag)
+            }
+
+            "ru" -> {
+                binding.ivFlag.setImageResource(R.drawable.flag_ru)
+                binding.ivFlag.contentDescription = getString(R.string.russian_flag)
+            }
+
+            else -> {
+                binding.ivFlag.setImageResource(R.drawable.flag_usa)
+                binding.ivFlag.contentDescription = getString(R.string.english_flag)
+            }
+        }
+
         binding.spinnerLanguage.onItemSelectedListener =
             object : AdapterView.OnItemSelectedListener {
                 override fun onItemSelected(
@@ -148,6 +169,35 @@ class ProfileActivity : BaseActivity() {
                         setLocale(selectedLanguage)
                         recreate()
                     }
+                }
+
+                override fun onNothingSelected(parent: AdapterView<*>) {}
+            }
+    }
+
+    private fun setupCurrencySpinner() {
+        val currencies = arrayOf("USD", "EUR", "RUB")
+        val adapter = ArrayAdapter(this, R.layout.spinner_item, currencies)
+        adapter.setDropDownViewResource(R.layout.spinner_dropdown_item)
+        binding.spinnerCurrency.adapter = adapter
+
+        val prefs = getSharedPreferences("UserPrefs", MODE_PRIVATE)
+        val currentCurrency = prefs.getString("currency_$userId", "USD") ?: "USD"
+        val position = currencies.indexOf(currentCurrency)
+        if (position >= 0) binding.spinnerCurrency.setSelection(position)
+        binding.tvCurrencySymbol.text = currencySymbols[currentCurrency]
+
+        binding.spinnerCurrency.onItemSelectedListener =
+            object : AdapterView.OnItemSelectedListener {
+                override fun onItemSelected(
+                    parent: AdapterView<*>,
+                    view: View?,
+                    position: Int,
+                    id: Long
+                ) {
+                    val selectedCurrency = currencies[position]
+                    prefs.edit().putString("currency_$userId", selectedCurrency).apply()
+                    binding.tvCurrencySymbol.text = currencySymbols[selectedCurrency]
                 }
 
                 override fun onNothingSelected(parent: AdapterView<*>) {}
