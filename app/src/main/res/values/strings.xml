@@ -1,0 +1,10 @@
+<resources>
+    <string name="app_name">SmartNews</string>
+    <string name="email">Email</string>
+    <string name="password">Password</string>
+    <string name="sing_in">Sing in</string>
+    <string name="don_t_have_an_account_register">Don\'t have an account? Register</string>
+    <string name="name">Name</string>
+    <string name="register">Register</string>
+    <string name="already_have_an_account_login">Already have an account? Login</string>
+</resources>

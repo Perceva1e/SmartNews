@@ -1,0 +1,8 @@
+<resources>
+    <style name="Theme.SmartNews" parent="Theme.MaterialComponents.DayNight.NoActionBar">
+        <item name="android:windowBackground">@android:color/black</item>
+        <item name="colorPrimary">#6B2D88</item>
+        <item name="colorPrimaryVariant">#9B59B6</item>
+        <item name="colorOnPrimary">#FFFFFF</item>
+    </style>
+</resources>
