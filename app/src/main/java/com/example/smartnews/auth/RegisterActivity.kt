@@ -7,6 +7,7 @@ import android.widget.EditText
 import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
 import com.example.smartnews.R
+import com.example.smartnews.activity.MainActivity
 import com.example.smartnews.bd.DatabaseHelper
 
 class RegisterActivity : AppCompatActivity() {
@@ -41,7 +42,7 @@ class RegisterActivity : AppCompatActivity() {
             val result = localDb.addUser(name, email, password)
             if (result != -1L) {
                 Toast.makeText(this, "Регистрация успешна", Toast.LENGTH_SHORT).show()
-                startActivity(Intent(this, LoginActivity::class.java))
+                startActivity(Intent(this, MainActivity::class.java))
                 finish()
             } else {
                 Toast.makeText(this, "Ошибка регистрации: Пользователь уже существует или произошла ошибка", Toast.LENGTH_SHORT).show()

@@ -7,4 +7,10 @@
     <string name="name">Name</string>
     <string name="register">Register</string>
     <string name="already_have_an_account_login">Already have an account? Login</string>
+    <string name="app_logo">App Logo</string>
+    <string name="saved">Saved</string>
+    <string name="home">Home</string>
+    <string name="recommend">Recommend</string>
+    <string name="profile">Profile</string>
+    <string name="news_image">Image news</string>
 </resources>
