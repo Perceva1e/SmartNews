@@ -1,6 +1,7 @@
 package com.example.smartnews.activity
 
 import android.content.Context
+import android.content.Intent
 import android.content.res.Configuration
 import android.os.Bundle
 import android.widget.ArrayAdapter
@@ -11,15 +12,20 @@ import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
 import com.example.smartnews.R
 import com.example.smartnews.bd.DatabaseHelper
+import com.google.android.material.bottomnavigation.BottomNavigationView
 import java.util.Locale
 
 class ProfileActivity : AppCompatActivity() {
 
     private lateinit var dbHelper: DatabaseHelper
+    private var userId: Int = -1
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_profile)
+
+        userId = intent.getIntExtra("USER_ID", -1)
+        if (userId == -1) finish()
 
         dbHelper = DatabaseHelper(this)
 
@@ -90,6 +96,32 @@ class ProfileActivity : AppCompatActivity() {
                 Toast.makeText(this, "Аккаунт не найден", Toast.LENGTH_SHORT).show()
             }
         }
+
+        val bottomNavigation = findViewById<BottomNavigationView>(R.id.bottomNavigation)
+        bottomNavigation.setOnNavigationItemSelectedListener { item ->
+            when (item.itemId) {
+                R.id.navigation_home -> {
+                    startActivity(Intent(this, MainActivity::class.java).apply {
+                        putExtra("USER_ID", userId)
+                        addFlags(Intent.FLAG_ACTIVITY_REORDER_TO_FRONT)
+                    })
+                    applyTransition()
+                    true
+                }
+                R.id.navigation_saved -> {
+                    true
+                }
+                R.id.navigation_recommend -> {
+                    true
+                }
+                R.id.navigation_profile -> {
+                    true
+                }
+                else -> false
+            }
+        }
+
+        bottomNavigation.selectedItemId = R.id.navigation_profile
     }
 
     private fun setLocale(language: String) {
@@ -101,5 +133,14 @@ class ProfileActivity : AppCompatActivity() {
         val intent = intent
         finish()
         startActivity(intent)
+    }
+
+    private fun applyTransition() {
+        if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.UPSIDE_DOWN_CAKE) {
+            overrideActivityTransition(androidx.appcompat.app.AppCompatActivity.OVERRIDE_TRANSITION_OPEN, 0, 0)
+        } else {
+            @Suppress("DEPRECATION")
+            overridePendingTransition(0, 0)
+        }
     }
 }

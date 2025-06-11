@@ -43,7 +43,9 @@ class RegisterActivity : AppCompatActivity() {
             val result = localDb.addUser(name, email, password)
             if (result != -1L) {
                 showCustomDialog(getString(R.string.success_title), getString(R.string.success_registration), R.layout.custom_dialog_success) {
-                    startActivity(Intent(this, MainActivity::class.java))
+                    startActivity(Intent(this, MainActivity::class.java).apply {
+                        putExtra("USER_ID", result.toInt())
+                    })
                     finish()
                 }
             } else {

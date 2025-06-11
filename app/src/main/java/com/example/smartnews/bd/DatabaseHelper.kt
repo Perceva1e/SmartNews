@@ -41,14 +41,15 @@ class DatabaseHelper(context: Context) : SQLiteOpenHelper(context, DATABASE_NAME
         return id
     }
 
-    fun checkUser(email: String, password: String): Boolean {
-        val db = this.readableDatabase
-        val query = "SELECT * FROM $TABLE_NAME WHERE $COLUMN_EMAIL = ? AND $COLUMN_PASSWORD = ?"
-        val cursor = db.rawQuery(query, arrayOf(email, password))
-        val count = cursor.count
-        cursor.close()
-        db.close()
-        return count > 0
+    fun checkUser(email: String, password: String): User? {
+        val db = readableDatabase
+        val cursor = db.rawQuery("SELECT id, name, email, password FROM users WHERE email = ? AND password = ?", arrayOf(email, password))
+        return if (cursor.moveToFirst()) {
+            User(cursor.getInt(0), cursor.getString(1), cursor.getString(2), cursor.getString(3))
+        } else {
+            cursor.close()
+            null
+        }
     }
 
     fun getUser(): User? {
@@ -96,3 +97,4 @@ class DatabaseHelper(context: Context) : SQLiteOpenHelper(context, DATABASE_NAME
 }
 
 data class User(val id: Int, val name: String, val email: String, val password: String)
+

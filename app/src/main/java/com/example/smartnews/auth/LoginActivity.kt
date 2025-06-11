@@ -37,9 +37,12 @@ class LoginActivity : AppCompatActivity() {
                 return@setOnClickListener
             }
 
-            if (localDb.checkUser(email, password)) {
+            val user = localDb.checkUser(email, password)
+            if (user != null) {
                 showCustomDialog(getString(R.string.success_title), getString(R.string.success_login), R.layout.custom_dialog_success) {
-                    startActivity(Intent(this, MainActivity::class.java))
+                    startActivity(Intent(this, MainActivity::class.java).apply {
+                        putExtra("USER_ID", user.id)
+                    })
                     finish()
                 }
             } else {
