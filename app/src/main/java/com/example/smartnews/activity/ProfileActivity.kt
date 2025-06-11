@@ -5,17 +5,25 @@ import android.content.Context
 import android.content.Intent
 import android.content.res.Configuration
 import android.os.Bundle
+import android.os.Handler
+import android.os.Looper
 import android.view.LayoutInflater
 import android.view.View
 import android.widget.AdapterView
 import android.widget.ArrayAdapter
 import android.widget.Button
 import android.widget.EditText
+import android.widget.FrameLayout
 import android.widget.ImageView
 import android.widget.Spinner
 import androidx.appcompat.app.AppCompatActivity
 import com.example.smartnews.R
 import com.example.smartnews.bd.DatabaseHelper
+import com.google.android.gms.ads.AdListener
+import com.google.android.gms.ads.AdRequest
+import com.google.android.gms.ads.AdView
+import com.google.android.gms.ads.LoadAdError
+import com.google.android.gms.ads.MobileAds
 import com.google.android.material.bottomnavigation.BottomNavigationView
 import java.util.Locale
 
@@ -23,6 +31,15 @@ class ProfileActivity : AppCompatActivity() {
 
     private lateinit var dbHelper: DatabaseHelper
     private var userId: Int = -1
+    private lateinit var adContainer: FrameLayout
+    private lateinit var adView: AdView
+    private lateinit var ivCloseAd: ImageView
+    private val handler = Handler(Looper.getMainLooper())
+    private lateinit var adRequest: AdRequest
+    private val showAdRunnable = Runnable {
+        adContainer.visibility = View.VISIBLE
+        adView.loadAd(adRequest)
+    }
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -93,7 +110,7 @@ class ProfileActivity : AppCompatActivity() {
         btnSave?.setOnClickListener {
             val name = etName.text.toString().trim()
             val email = etEmail.text.toString().trim()
-            val language = if (spLanguage.selectedItemPosition == 0) "ru" else "en" // Adjust based on array order
+            val language = if (spLanguage.selectedItemPosition == 0) "ru" else "en"
             val currency = currencies[spCurrency.selectedItemPosition].substringBefore(" ")
 
             if (name.isNotEmpty() && email.isNotEmpty()) {
@@ -154,8 +171,52 @@ class ProfileActivity : AppCompatActivity() {
                 else -> false
             }
         }
-
         bottomNavigation.selectedItemId = R.id.navigation_profile
+
+        MobileAds.initialize(this) {}
+        adContainer = findViewById(R.id.adContainer)
+        adView = findViewById(R.id.adView)
+        ivCloseAd = findViewById(R.id.ivCloseAd)
+        adRequest = AdRequest.Builder().build()
+
+        ivCloseAd.visibility = View.GONE
+
+        adView.adListener = object : AdListener() {
+            override fun onAdLoaded() {
+                super.onAdLoaded()
+                ivCloseAd.visibility = View.VISIBLE
+            }
+
+            override fun onAdFailedToLoad(error: LoadAdError) {
+                super.onAdFailedToLoad(error)
+                 ivCloseAd.visibility = View.GONE
+                adContainer.visibility = View.GONE
+            }
+        }
+
+        adView.loadAd(adRequest)
+
+        ivCloseAd.setOnClickListener {
+            adContainer.visibility = View.GONE
+            ivCloseAd.visibility = View.GONE
+            handler.postDelayed(showAdRunnable, 10000)
+        }
+    }
+
+    override fun onPause() {
+        super.onPause()
+        adView.pause()
+    }
+
+    override fun onResume() {
+        super.onResume()
+        adView.resume()
+    }
+
+    override fun onDestroy() {
+        adView.destroy()
+        handler.removeCallbacks(showAdRunnable)
+        super.onDestroy()
     }
 
     private fun setLocale(language: String) {

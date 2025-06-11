@@ -43,4 +43,5 @@
     <string name="error_loading_news_desc">Ошибка загрузки новостей: %s</string>
     <string name="language_icon_desc">Значок языка</string>
     <string name="currency_icon_desc">Значок валюты</string>
+    <string name="close_ad">Закрыть рекламу</string>
 </resources>

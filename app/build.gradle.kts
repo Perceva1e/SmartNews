@@ -59,4 +59,5 @@ dependencies {
     implementation (libs.androidx.navigation.ui.ktx)
     implementation (libs.glide)
     kapt (libs.compiler)
+    implementation ("com.google.android.gms:play-services-ads:21.5.0")
 }
