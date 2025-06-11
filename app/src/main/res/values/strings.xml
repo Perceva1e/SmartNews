@@ -26,9 +26,8 @@
     <string name="ok">ОК</string>
     <string name="please_check_the_data_you_entered">Please check the data you entered.</string>
     <string-array name="currencies">
-        <item>RUB (₽)</item>
-        <item>USD ($)</item>
-        <item>EUR (€)</item>
+        <item>BYN - Belarus Ruble</item>
+        <item>USD - US Dollar</item>
     </string-array>
     <string name="error_title">Error</string>
     <string name="error_empty_fields">Please fill in all fields</string>
@@ -42,4 +41,6 @@
     <string name="error_no_internet_desc">No internet connection</string>
     <string name="error_no_news_desc">No news available</string>
     <string name="error_loading_news_desc">Error loading news: %s</string>
+    <string name="language_icon_desc">Language icon</string>
+    <string name="currency_icon_desc">Currency icon</string>
 </resources>

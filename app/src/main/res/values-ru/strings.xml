@@ -26,9 +26,8 @@
     <string name="ok">ОК</string>
     <string name="please_check_the_data_you_entered">Пожалуйста, проверьте введённые данные.</string>
     <string-array name="currencies">
-        <item>RUB (₽)</item>
-        <item>USD ($)</item>
-        <item>EUR (€)</item>
+        <item>BYN - Белорусский рубль</item>
+        <item>USD - Доллары</item>
     </string-array>
     <string name="error_title">Ошибка</string>
     <string name="error_empty_fields">Пожалуйста, заполните все поля</string>
@@ -42,4 +41,6 @@
     <string name="error_no_internet_desc">Нет подключения к интернету</string>
     <string name="error_no_news_desc">Нет доступных новостей</string>
     <string name="error_loading_news_desc">Ошибка загрузки новостей: %s</string>
+    <string name="language_icon_desc">Значок языка</string>
+    <string name="currency_icon_desc">Значок валюты</string>
 </resources>

@@ -6,9 +6,12 @@ import android.content.Intent
 import android.content.res.Configuration
 import android.os.Bundle
 import android.view.LayoutInflater
+import android.view.View
+import android.widget.AdapterView
 import android.widget.ArrayAdapter
 import android.widget.Button
 import android.widget.EditText
+import android.widget.ImageView
 import android.widget.Spinner
 import androidx.appcompat.app.AppCompatActivity
 import com.example.smartnews.R
@@ -38,6 +41,8 @@ class ProfileActivity : AppCompatActivity() {
         val etEmail = findViewById<EditText>(R.id.etEmail)
         val spLanguage = findViewById<Spinner>(R.id.spLanguage)
         val spCurrency = findViewById<Spinner>(R.id.spCurrency)
+        val ivLanguageIcon = findViewById<ImageView>(R.id.ivLanguageIcon)
+        val ivCurrencyIcon = findViewById<ImageView>(R.id.ivCurrencyIcon)
         val btnSave = findViewById<Button>(R.id.btnSave)
         val btnDeleteAccount = findViewById<Button>(R.id.btnDeleteAccount)
 
@@ -61,12 +66,34 @@ class ProfileActivity : AppCompatActivity() {
         val languageIndex = languages.indexOfFirst { it.contains(currentLang ?: "ru", ignoreCase = true) }
         spLanguage.setSelection(if (languageIndex != -1) languageIndex else 0)
 
-        spCurrency.setSelection(currencies.indexOfFirst { it.startsWith(currentCurrency ?: "RUB") })
+        val currencyIndex = currencies.indexOfFirst { it.startsWith(currentCurrency ?: "RUB") }
+        spCurrency.setSelection(if (currencyIndex != -1) currencyIndex else 0)
+
+        updateLanguageIcon(spLanguage.selectedItemPosition, ivLanguageIcon)
+        updateCurrencyIcon(spCurrency.selectedItemPosition, ivCurrencyIcon)
+
+        spLanguage.onItemSelectedListener = object : AdapterView.OnItemSelectedListener {
+            override fun onItemSelected(parent: AdapterView<*>?, view: View?, position: Int, id: Long) {
+                updateLanguageIcon(position, ivLanguageIcon)
+            }
+
+            override fun onNothingSelected(parent: AdapterView<*>?) {
+            }
+        }
+
+        spCurrency.onItemSelectedListener = object : AdapterView.OnItemSelectedListener {
+            override fun onItemSelected(parent: AdapterView<*>?, view: View?, position: Int, id: Long) {
+                updateCurrencyIcon(position, ivCurrencyIcon)
+            }
+
+            override fun onNothingSelected(parent: AdapterView<*>?) {
+            }
+        }
 
         btnSave?.setOnClickListener {
             val name = etName.text.toString().trim()
             val email = etEmail.text.toString().trim()
-            val language = if (spLanguage.selectedItemPosition == 0) "ru" else "en"
+            val language = if (spLanguage.selectedItemPosition == 0) "ru" else "en" // Adjust based on array order
             val currency = currencies[spCurrency.selectedItemPosition].substringBefore(" ")
 
             if (name.isNotEmpty() && email.isNotEmpty()) {
@@ -173,5 +200,24 @@ class ProfileActivity : AppCompatActivity() {
         }
 
         dialog.show()
+    }
+
+    private fun updateLanguageIcon(position: Int, imageView: ImageView) {
+        val drawableId = when (position) {
+            0 -> R.drawable.ic_flag_ru
+            1 -> R.drawable.ic_flag_en
+            else -> R.drawable.ic_flag_ru
+        }
+        imageView.setImageResource(drawableId)
+    }
+
+    private fun updateCurrencyIcon(position: Int, imageView: ImageView) {
+        val currency = resources.getStringArray(R.array.currencies)[position].substringBefore(" ")
+        val drawableId = when (currency) {
+            "RUB" -> R.drawable.ic_rub
+            "USD" -> R.drawable.ic_usd
+            else -> R.drawable.ic_rub
+        }
+        imageView.setImageResource(drawableId)
     }
 }
