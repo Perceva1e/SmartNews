@@ -50,4 +50,49 @@ class DatabaseHelper(context: Context) : SQLiteOpenHelper(context, DATABASE_NAME
         db.close()
         return count > 0
     }
+
+    fun getUser(): User? {
+        val db = this.readableDatabase
+        val cursor = db.query(
+            "users",
+            arrayOf("id", "name", "email", "password"),
+            null,
+            null,
+            null,
+            null,
+            null
+        )
+        var user: User? = null
+        if (cursor.moveToFirst()) {
+            val id = cursor.getInt(cursor.getColumnIndexOrThrow("id"))
+            val name = cursor.getString(cursor.getColumnIndexOrThrow("name"))
+            val email = cursor.getString(cursor.getColumnIndexOrThrow("email"))
+            val password = cursor.getString(cursor.getColumnIndexOrThrow("password"))
+            user = User(id, name, email, password)
+        }
+        cursor.close()
+        db.close()
+        return user
+    }
+
+    fun updateUser(id: Int, name: String, email: String, password: String): Int {
+        val db = this.writableDatabase
+        val values = ContentValues().apply {
+            put("name", name)
+            put("email", email)
+            put("password", password)
+        }
+        val rowsAffected = db.update("users", values, "id = ?", arrayOf(id.toString()))
+        db.close()
+        return rowsAffected
+    }
+
+    fun deleteUser(id: Int): Int {
+        val db = this.writableDatabase
+        val rowsAffected = db.delete("users", "id = ?", arrayOf(id.toString()))
+        db.close()
+        return rowsAffected
+    }
 }
+
+data class User(val id: Int, val name: String, val email: String, val password: String)

@@ -2,9 +2,10 @@ package com.example.smartnews.auth
 
 import android.content.Intent
 import android.os.Bundle
+import android.view.LayoutInflater
 import android.widget.Button
 import android.widget.EditText
-import android.widget.Toast
+import androidx.appcompat.app.AlertDialog
 import androidx.appcompat.app.AppCompatActivity
 import com.example.smartnews.R
 import com.example.smartnews.activity.MainActivity
@@ -35,22 +36,42 @@ class RegisterActivity : AppCompatActivity() {
             val password = etPassword.text.toString().trim()
 
             if (name.isEmpty() || email.isEmpty() || password.isEmpty()) {
-                Toast.makeText(this, "Пожалуйста, заполните все поля", Toast.LENGTH_SHORT).show()
+                showCustomDialog(getString(R.string.error_title), getString(R.string.error_empty_fields), R.layout.custom_dialog_error)
                 return@setOnClickListener
             }
 
             val result = localDb.addUser(name, email, password)
             if (result != -1L) {
-                Toast.makeText(this, "Регистрация успешна", Toast.LENGTH_SHORT).show()
-                startActivity(Intent(this, MainActivity::class.java))
-                finish()
+                showCustomDialog(getString(R.string.success_title), getString(R.string.success_registration), R.layout.custom_dialog_success) {
+                    startActivity(Intent(this, MainActivity::class.java))
+                    finish()
+                }
             } else {
-                Toast.makeText(this, "Ошибка регистрации: Пользователь уже существует или произошла ошибка", Toast.LENGTH_SHORT).show()
+                showCustomDialog(getString(R.string.error_title), getString(R.string.error_registration), R.layout.custom_dialog_error)
             }
         }
 
         btnGoToLogin.setOnClickListener {
             startActivity(Intent(this, LoginActivity::class.java))
         }
+    }
+
+    private fun showCustomDialog(title: String, message: String, layoutResId: Int, onOk: (() -> Unit)? = null) {
+        val dialogView = LayoutInflater.from(this).inflate(layoutResId, null)
+        val dialogBuilder = AlertDialog.Builder(this)
+            .setView(dialogView)
+            .setCancelable(true)
+
+        val dialog = dialogBuilder.create()
+        dialog.window?.setBackgroundDrawableResource(android.R.color.transparent)
+
+        dialogView.findViewById<androidx.appcompat.widget.AppCompatTextView>(R.id.tvMessage)?.text = title
+        dialogView.findViewById<androidx.appcompat.widget.AppCompatTextView>(R.id.tvDescription)?.text = message
+        dialogView.findViewById<com.google.android.material.button.MaterialButton>(R.id.btnOk)?.setOnClickListener {
+            onOk?.invoke()
+            dialog.dismiss()
+        }
+
+        dialog.show()
     }
 }

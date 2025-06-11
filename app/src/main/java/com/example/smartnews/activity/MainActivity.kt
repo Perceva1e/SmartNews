@@ -51,7 +51,7 @@ class MainActivity : AppCompatActivity() {
                     true
                 }
                 R.id.navigation_profile -> {
-                    // Логика для профиля
+                    startActivity(Intent(this, ProfileActivity::class.java))
                     true
                 }
                 else -> false
@@ -132,7 +132,8 @@ class NewsAdapter : RecyclerView.Adapter<NewsAdapter.NewsViewHolder>() {
             tvTitle.text = news.title ?: "No title"
             tvDescription.text = news.description ?: "No description"
             tvDate.text = news.publishedAt?.substring(0, 10) ?: "No date"
-            tvSource.text = news.url?.substringAfter("://")?.substringBefore("/") ?: "Unknown source"
+            val sourceText = news.url?.substringAfter("://")?.substringBefore("/") ?: "Unknown source"
+            tvSource.text = sourceText
             tvSource.setOnClickListener {
                 news.url?.let { url ->
                     val intent = Intent(Intent.ACTION_VIEW, Uri.parse(url))
