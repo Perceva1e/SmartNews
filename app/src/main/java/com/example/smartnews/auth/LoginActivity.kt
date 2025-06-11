@@ -1,6 +1,7 @@
 package com.example.smartnews.auth
 
 import android.content.Intent
+import android.content.res.Configuration
 import android.os.Bundle
 import android.view.LayoutInflater
 import android.widget.Button
@@ -10,6 +11,7 @@ import androidx.appcompat.app.AppCompatActivity
 import com.example.smartnews.R
 import com.example.smartnews.activity.MainActivity
 import com.example.smartnews.bd.DatabaseHelper
+import java.util.Locale
 
 class LoginActivity : AppCompatActivity() {
     private lateinit var etEmail: EditText
@@ -19,6 +21,10 @@ class LoginActivity : AppCompatActivity() {
     private lateinit var localDb: DatabaseHelper
 
     override fun onCreate(savedInstanceState: Bundle?) {
+        val sharedPref = getSharedPreferences("UserPrefs", MODE_PRIVATE)
+        val savedLang = sharedPref.getString("app_language", "ru")
+        setLocale(savedLang ?: "ru")
+
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_login)
 
@@ -53,6 +59,15 @@ class LoginActivity : AppCompatActivity() {
         btnGoToRegister.setOnClickListener {
             startActivity(Intent(this, RegisterActivity::class.java))
         }
+    }
+
+    private fun setLocale(language: String) {
+        val locale = Locale(language)
+        Locale.setDefault(locale)
+
+        val config = Configuration()
+        config.setLocale(locale)
+        baseContext.resources.updateConfiguration(config, baseContext.resources.displayMetrics)
     }
 
     private fun showCustomDialog(title: String, message: String, layoutResId: Int, onOk: (() -> Unit)? = null) {

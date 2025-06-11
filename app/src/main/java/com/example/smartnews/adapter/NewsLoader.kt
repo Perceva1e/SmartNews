@@ -11,15 +11,16 @@ import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
+import android.view.LayoutInflater
+import androidx.appcompat.app.AlertDialog
+import com.example.smartnews.R
 
 object NewsLoader {
     private const val TAG = "NewsLoader"
 
     fun loadNews(context: Context, adapter: RecyclerView.Adapter<*>) {
         if (!isInternetAvailable(context)) {
-            runOnUiThread(context) {
-                android.widget.Toast.makeText(context, "Нет интернет-соединения", android.widget.Toast.LENGTH_SHORT).show()
-            }
+            showCustomDialog(context, getString(context, R.string.error_title), getString(context, R.string.error_no_internet_desc), R.layout.custom_dialog_error)
             return
         }
 
@@ -32,13 +33,13 @@ object NewsLoader {
                     if (newsList.isNotEmpty()) {
                         (adapter as NewsAdapter).setNews(newsList)
                     } else {
-                        android.widget.Toast.makeText(context, "Нет доступных новостей", android.widget.Toast.LENGTH_SHORT).show()
+                        showCustomDialog(context, getString(context, R.string.error_title), getString(context, R.string.error_no_news_desc), R.layout.custom_dialog_error)
                     }
                 }
             } catch (e: Exception) {
                 withContext(Dispatchers.Main) {
                     Log.e(TAG, "Error loading news", e)
-                    android.widget.Toast.makeText(context, "Ошибка загрузки новостей: ${e.message}", android.widget.Toast.LENGTH_SHORT).show()
+                    showCustomDialog(context, getString(context, R.string.error_title), getString(context, R.string.error_loading_news_desc), R.layout.custom_dialog_error)
                 }
             }
         }
@@ -55,5 +56,27 @@ object NewsLoader {
         if (context is AppCompatActivity) {
             context.runOnUiThread(action)
         }
+    }
+
+    private fun getString(context: Context, resId: Int): String {
+        return context.getString(resId)
+    }
+
+    private fun showCustomDialog(context: Context, title: String, message: String, layoutResId: Int) {
+        val dialogView = LayoutInflater.from(context).inflate(layoutResId, null)
+        val dialogBuilder = AlertDialog.Builder(context)
+            .setView(dialogView)
+            .setCancelable(true)
+
+        val dialog = dialogBuilder.create()
+        dialog.window?.setBackgroundDrawableResource(android.R.color.transparent)
+
+        dialogView.findViewById<androidx.appcompat.widget.AppCompatTextView>(R.id.tvMessage)?.text = title
+        dialogView.findViewById<androidx.appcompat.widget.AppCompatTextView>(R.id.tvDescription)?.text = message
+        dialogView.findViewById<com.google.android.material.button.MaterialButton>(R.id.btnOk)?.setOnClickListener {
+            dialog.dismiss()
+        }
+
+        dialog.show()
     }
 }

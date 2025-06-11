@@ -1,14 +1,15 @@
 package com.example.smartnews.activity
 
+import android.app.AlertDialog
 import android.content.Context
 import android.content.Intent
 import android.content.res.Configuration
 import android.os.Bundle
+import android.view.LayoutInflater
 import android.widget.ArrayAdapter
 import android.widget.Button
 import android.widget.EditText
 import android.widget.Spinner
-import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
 import com.example.smartnews.R
 import com.example.smartnews.bd.DatabaseHelper
@@ -48,13 +49,18 @@ class ProfileActivity : AppCompatActivity() {
 
         val languages = resources.getStringArray(R.array.languages)
         val currencies = resources.getStringArray(R.array.currencies)
-        spLanguage.adapter = ArrayAdapter(this, android.R.layout.simple_spinner_item, languages).apply {
-            setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item)
-        }
-        spCurrency.adapter = ArrayAdapter(this, android.R.layout.simple_spinner_item, currencies).apply {
-            setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item)
-        }
-        spLanguage.setSelection(if (currentLang == "en") 1 else 0)
+
+        val languageAdapter = ArrayAdapter(this, R.layout.spinner_item, languages)
+        languageAdapter.setDropDownViewResource(R.layout.spinner_dropdown_item)
+        spLanguage.adapter = languageAdapter
+
+        val currencyAdapter = ArrayAdapter(this, R.layout.spinner_item, currencies)
+        currencyAdapter.setDropDownViewResource(R.layout.spinner_dropdown_item)
+        spCurrency.adapter = currencyAdapter
+
+        val languageIndex = languages.indexOfFirst { it.contains(currentLang ?: "ru", ignoreCase = true) }
+        spLanguage.setSelection(if (languageIndex != -1) languageIndex else 0)
+
         spCurrency.setSelection(currencies.indexOfFirst { it.startsWith(currentCurrency ?: "RUB") })
 
         btnSave?.setOnClickListener {
@@ -76,9 +82,9 @@ class ProfileActivity : AppCompatActivity() {
                     apply()
                 }
                 setLocale(language)
-                Toast.makeText(this, "Сохранено", Toast.LENGTH_SHORT).show()
+                showCustomDialog(getString(R.string.success_title), getString(R.string.saved), R.layout.custom_dialog_success)
             } else {
-                Toast.makeText(this, "Заполните все поля", Toast.LENGTH_SHORT).show()
+                showCustomDialog(getString(R.string.error_title), getString(R.string.error_empty_fields), R.layout.custom_dialog_error)
             }
         }
 
@@ -90,10 +96,11 @@ class ProfileActivity : AppCompatActivity() {
                     clear()
                     apply()
                 }
-                Toast.makeText(this, "Аккаунт удален", Toast.LENGTH_SHORT).show()
-                finish()
+                showCustomDialog(getString(R.string.success_title), getString(R.string.success_deleted_desc), R.layout.custom_dialog_success) {
+                    finish()
+                }
             } else {
-                Toast.makeText(this, "Аккаунт не найден", Toast.LENGTH_SHORT).show()
+                showCustomDialog(getString(R.string.error_title), getString(R.string.error_user_not_found), R.layout.custom_dialog_error)
             }
         }
 
@@ -127,12 +134,17 @@ class ProfileActivity : AppCompatActivity() {
     private fun setLocale(language: String) {
         val locale = Locale(language)
         Locale.setDefault(locale)
+
         val config = Configuration()
         config.setLocale(locale)
-        resources.updateConfiguration(config, resources.displayMetrics)
-        val intent = intent
-        finish()
+        baseContext.resources.updateConfiguration(config, baseContext.resources.displayMetrics)
+
+        val intent = Intent(this, MainActivity::class.java).apply {
+            putExtra("USER_ID", userId)
+            addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP or Intent.FLAG_ACTIVITY_NEW_TASK)
+        }
         startActivity(intent)
+        finish()
     }
 
     private fun applyTransition() {
@@ -142,5 +154,24 @@ class ProfileActivity : AppCompatActivity() {
             @Suppress("DEPRECATION")
             overridePendingTransition(0, 0)
         }
+    }
+
+    private fun showCustomDialog(title: String, message: String, layoutResId: Int, onOk: (() -> Unit)? = null) {
+        val dialogView = LayoutInflater.from(this).inflate(layoutResId, null)
+        val dialogBuilder = AlertDialog.Builder(this)
+            .setView(dialogView)
+            .setCancelable(true)
+
+        val dialog = dialogBuilder.create()
+        dialog.window?.setBackgroundDrawableResource(android.R.color.transparent)
+
+        dialogView.findViewById<androidx.appcompat.widget.AppCompatTextView>(R.id.tvMessage)?.text = title
+        dialogView.findViewById<androidx.appcompat.widget.AppCompatTextView>(R.id.tvDescription)?.text = message
+        dialogView.findViewById<com.google.android.material.button.MaterialButton>(R.id.btnOk)?.setOnClickListener {
+            onOk?.invoke()
+            dialog.dismiss()
+        }
+
+        dialog.show()
     }
 }

@@ -1,6 +1,7 @@
 package com.example.smartnews.activity
 
 import android.content.Intent
+import android.content.res.Configuration
 import android.os.Bundle
 import android.util.Log
 import androidx.appcompat.app.AppCompatActivity
@@ -9,6 +10,7 @@ import com.example.smartnews.R
 import com.example.smartnews.adapter.NewsAdapter
 import com.example.smartnews.adapter.NewsLoader
 import com.google.android.material.bottomnavigation.BottomNavigationView
+import java.util.Locale
 
 class MainActivity : AppCompatActivity() {
 
@@ -17,6 +19,10 @@ class MainActivity : AppCompatActivity() {
     private var userId: Int = -1
 
     override fun onCreate(savedInstanceState: Bundle?) {
+        val sharedPref = getSharedPreferences("UserPrefs", MODE_PRIVATE)
+        val savedLang = sharedPref.getString("app_language", "ru")
+        setLocale(savedLang ?: "ru")
+
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_main)
 
@@ -66,6 +72,7 @@ class MainActivity : AppCompatActivity() {
                 else -> false
             }
         }
+
         bottomNavigation.selectedItemId = R.id.navigation_home
     }
 
@@ -80,5 +87,14 @@ class MainActivity : AppCompatActivity() {
             @Suppress("DEPRECATION")
             overridePendingTransition(0, 0)
         }
+    }
+
+    private fun setLocale(language: String) {
+        val locale = Locale(language)
+        Locale.setDefault(locale)
+
+        val config = Configuration()
+        config.setLocale(locale)
+        baseContext.resources.updateConfiguration(config, baseContext.resources.displayMetrics)
     }
 }

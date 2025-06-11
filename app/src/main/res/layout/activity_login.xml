@@ -47,7 +47,7 @@
         android:layout_height="wrap_content"
         android:text="@string/sing_in"
         android:textColor="#FFFFFF"
-        android:background="@drawable/button_background"
+        android:background="@drawable/edittext_border"
         android:textSize="16sp"
         android:drawableEnd="@drawable/ic_arrow_right"
         android:drawableTint="@color/white"

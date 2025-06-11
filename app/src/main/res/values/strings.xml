@@ -37,4 +37,9 @@
     <string name="error_invalid_credentials">Incorrect email or password</string>
     <string name="success_registration">Registration successful</string>
     <string name="error_registration">Registration Error: User already exists or an error occurred</string>
+    <string name="success_deleted_desc">Account deleted</string>
+    <string name="error_user_not_found">Account not found</string>
+    <string name="error_no_internet_desc">No internet connection</string>
+    <string name="error_no_news_desc">No news available</string>
+    <string name="error_loading_news_desc">Error loading news: %s</string>
 </resources>

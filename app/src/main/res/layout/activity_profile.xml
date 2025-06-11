@@ -103,9 +103,8 @@
         android:layout_marginTop="16dp"
         android:text="@string/saved"
         android:textColor="#FFFFFF"
-        app:backgroundTint="#6B2D88"
+        android:background="@drawable/edittext_border"
         app:icon="@drawable/ic_saved"
-        app:iconTint="#FFFFFF"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toBottomOf="@id/llSpinners" />
