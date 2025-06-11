@@ -1,0 +1,167 @@
+<?xml version="1.0" encoding="utf-8"?>
+<androidx.constraintlayout.widget.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:background="#1A1A1A"
+    android:padding="16dp">
+
+    <TextView
+        android:id="@+id/text"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="@string/payment_title"
+        android:textColor="#FFFFFF"
+        android:textSize="24sp"
+        android:textStyle="bold"
+        app:layout_constraintTop_toTopOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintEnd_toEndOf="parent" />
+
+    <com.google.android.material.textfield.TextInputLayout
+        android:id="@+id/tilCardNumber"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="16dp"
+        android:hint="@string/card_number_hint"
+        android:textColorHint="#9B59B6"
+        app:boxStrokeColor="#9B59B6"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@id/text">
+
+        <com.google.android.material.textfield.TextInputEditText
+            android:id="@+id/etCardNumber"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:background="@drawable/edittext_border"
+            android:inputType="number"
+            android:maxLength="16"
+            android:textColor="#FFFFFF"
+            android:textColorHint="#9B59B6" />
+    </com.google.android.material.textfield.TextInputLayout>
+
+    <com.google.android.material.textfield.TextInputLayout
+        android:id="@+id/tilCardHolder"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="16dp"
+        android:hint="@string/card_holder_hint"
+        android:textColorHint="#9B59B6"
+        app:boxStrokeColor="#9B59B6"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@id/tilCardNumber">
+
+        <com.google.android.material.textfield.TextInputEditText
+            android:id="@+id/etCardHolder"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:background="@drawable/edittext_border"
+            android:inputType="textPersonName"
+            android:textColor="#FFFFFF"
+            android:textColorHint="#9B59B6" />
+    </com.google.android.material.textfield.TextInputLayout>
+
+    <LinearLayout
+        android:id="@+id/llExpiration"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="16dp"
+        android:orientation="horizontal"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@id/tilCardHolder">
+
+        <com.google.android.material.textfield.TextInputLayout
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:hint="@string/expiration_month_hint"
+            android:textColorHint="#9B59B6"
+            app:boxStrokeColor="#9B59B6">
+
+            <com.google.android.material.textfield.TextInputEditText
+                android:id="@+id/etExpirationMonth"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:background="@drawable/edittext_border"
+                android:inputType="number"
+                android:maxLength="2"
+                android:textColor="#FFFFFF"
+                android:textColorHint="#9B59B6" />
+        </com.google.android.material.textfield.TextInputLayout>
+
+        <com.google.android.material.textfield.TextInputLayout
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:layout_marginStart="8dp"
+            android:hint="@string/expiration_year_hint"
+            android:textColorHint="#9B59B6"
+            app:boxStrokeColor="#9B59B6">
+
+            <com.google.android.material.textfield.TextInputEditText
+                android:id="@+id/etExpirationYear"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:background="@drawable/edittext_border"
+                android:inputType="number"
+                android:maxLength="2"
+                android:textColor="#FFFFFF"
+                android:textColorHint="#9B59B6" />
+        </com.google.android.material.textfield.TextInputLayout>
+    </LinearLayout>
+
+    <com.google.android.material.textfield.TextInputLayout
+        android:id="@+id/tilCvv"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="16dp"
+        android:hint="@string/cvv_hint"
+        android:textColorHint="#9B59B6"
+        app:boxStrokeColor="#9B59B6"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@id/llExpiration">
+
+        <com.google.android.material.textfield.TextInputEditText
+            android:id="@+id/etCvv"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:background="@drawable/edittext_border"
+            android:inputType="numberPassword"
+            android:maxLength="3"
+            android:textColor="#FFFFFF"
+            android:textColorHint="#9B59B6" />
+    </com.google.android.material.textfield.TextInputLayout>
+
+    <com.google.android.material.button.MaterialButton
+        android:id="@+id/btnPay"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="24dp"
+        android:text="@string/pay_button"
+        android:textColor="#FFFFFF"
+        android:background="@drawable/edittext_border"
+        app:icon="@drawable/ic_pay"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@id/tilCvv" />
+
+    <com.google.android.material.button.MaterialButton
+        android:id="@+id/btnBack"
+        style="@style/Widget.MaterialComponents.Button.OutlinedButton"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="8dp"
+        android:text="@string/back_button"
+        android:textColor="#FFFFFF"
+        app:strokeColor="#9B59B6"
+        app:strokeWidth="2dp"
+        app:icon="@drawable/ic_arrow_back"
+        app:iconTint="#FFFFFF"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@id/btnPay" />
+</androidx.constraintlayout.widget.ConstraintLayout>

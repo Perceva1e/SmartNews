@@ -40,6 +40,8 @@ class ProfileActivity : AppCompatActivity() {
         adContainer.visibility = View.VISIBLE
         adView.loadAd(adRequest)
     }
+    private var isVip: Boolean = false
+    private val sharedPref by lazy { getSharedPreferences("UserPrefs", Context.MODE_PRIVATE) }
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -50,9 +52,9 @@ class ProfileActivity : AppCompatActivity() {
 
         dbHelper = DatabaseHelper(this)
 
-        val sharedPref = getSharedPreferences("UserPrefs", Context.MODE_PRIVATE)
         val currentLang = sharedPref.getString("app_language", "ru")
         val currentCurrency = sharedPref.getString("app_currency", "RUB")
+        isVip = sharedPref.getBoolean("is_vip", false)
 
         val etName = findViewById<EditText>(R.id.etName)
         val etEmail = findViewById<EditText>(R.id.etEmail)
@@ -62,6 +64,7 @@ class ProfileActivity : AppCompatActivity() {
         val ivCurrencyIcon = findViewById<ImageView>(R.id.ivCurrencyIcon)
         val btnSave = findViewById<Button>(R.id.btnSave)
         val btnDeleteAccount = findViewById<Button>(R.id.btnDeleteAccount)
+        val btnBuyVip = findViewById<Button>(R.id.btnBuyVip)
 
         val user = dbHelper.getUser()
         if (user != null) {
@@ -94,8 +97,7 @@ class ProfileActivity : AppCompatActivity() {
                 updateLanguageIcon(position, ivLanguageIcon)
             }
 
-            override fun onNothingSelected(parent: AdapterView<*>?) {
-            }
+            override fun onNothingSelected(parent: AdapterView<*>?) {}
         }
 
         spCurrency.onItemSelectedListener = object : AdapterView.OnItemSelectedListener {
@@ -103,8 +105,7 @@ class ProfileActivity : AppCompatActivity() {
                 updateCurrencyIcon(position, ivCurrencyIcon)
             }
 
-            override fun onNothingSelected(parent: AdapterView<*>?) {
-            }
+            override fun onNothingSelected(parent: AdapterView<*>?) {}
         }
 
         btnSave?.setOnClickListener {
@@ -148,6 +149,14 @@ class ProfileActivity : AppCompatActivity() {
             }
         }
 
+        btnBuyVip?.setOnClickListener {
+            if (!isVip) {
+                startActivity(Intent(this, PaymentActivity::class.java))
+            }
+        }
+
+        updateVipButtonState(btnBuyVip)
+
         val bottomNavigation = findViewById<BottomNavigationView>(R.id.bottomNavigation)
         bottomNavigation.setOnNavigationItemSelectedListener { item ->
             when (item.itemId) {
@@ -159,58 +168,33 @@ class ProfileActivity : AppCompatActivity() {
                     applyTransition()
                     true
                 }
-                R.id.navigation_saved -> {
-                    true
-                }
-                R.id.navigation_recommend -> {
-                    true
-                }
-                R.id.navigation_profile -> {
-                    true
-                }
+                R.id.navigation_saved -> true
+                R.id.navigation_recommend -> true
+                R.id.navigation_profile -> true
                 else -> false
             }
         }
         bottomNavigation.selectedItemId = R.id.navigation_profile
 
-        MobileAds.initialize(this) {}
         adContainer = findViewById(R.id.adContainer)
         adView = findViewById(R.id.adView)
         ivCloseAd = findViewById(R.id.ivCloseAd)
         adRequest = AdRequest.Builder().build()
 
-        ivCloseAd.visibility = View.GONE
+        updateAdVisibility()
+    }
 
-        adView.adListener = object : AdListener() {
-            override fun onAdLoaded() {
-                super.onAdLoaded()
-                ivCloseAd.visibility = View.VISIBLE
-            }
-
-            override fun onAdFailedToLoad(error: LoadAdError) {
-                super.onAdFailedToLoad(error)
-                 ivCloseAd.visibility = View.GONE
-                adContainer.visibility = View.GONE
-            }
-        }
-
-        adView.loadAd(adRequest)
-
-        ivCloseAd.setOnClickListener {
-            adContainer.visibility = View.GONE
-            ivCloseAd.visibility = View.GONE
-            handler.postDelayed(showAdRunnable, 10000)
-        }
+    override fun onResume() {
+        super.onResume()
+        isVip = sharedPref.getBoolean("is_vip", false)
+        updateAdVisibility()
+        updateVipButtonState(findViewById(R.id.btnBuyVip))
+        adView.resume()
     }
 
     override fun onPause() {
         super.onPause()
         adView.pause()
-    }
-
-    override fun onResume() {
-        super.onResume()
-        adView.resume()
     }
 
     override fun onDestroy() {
@@ -237,7 +221,7 @@ class ProfileActivity : AppCompatActivity() {
 
     private fun applyTransition() {
         if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.UPSIDE_DOWN_CAKE) {
-            overrideActivityTransition(androidx.appcompat.app.AppCompatActivity.OVERRIDE_TRANSITION_OPEN, 0, 0)
+            overrideActivityTransition(OVERRIDE_TRANSITION_OPEN, 0, 0)
         } else {
             @Suppress("DEPRECATION")
             overridePendingTransition(0, 0)
@@ -280,5 +264,48 @@ class ProfileActivity : AppCompatActivity() {
             else -> R.drawable.ic_rub
         }
         imageView.setImageResource(drawableId)
+    }
+
+    private fun updateAdVisibility() {
+        if (isVip) {
+            adContainer.visibility = View.GONE
+            handler.removeCallbacks(showAdRunnable)
+        } else {
+            MobileAds.initialize(this) {}
+            ivCloseAd.visibility = View.GONE
+
+            adView.adListener = object : AdListener() {
+                override fun onAdLoaded() {
+                    super.onAdLoaded()
+                    ivCloseAd.visibility = View.VISIBLE
+                }
+
+                override fun onAdFailedToLoad(error: LoadAdError) {
+                    super.onAdFailedToLoad(error)
+                    ivCloseAd.visibility = View.GONE
+                    adContainer.visibility = View.GONE
+                }
+            }
+
+            adView.loadAd(adRequest)
+
+            ivCloseAd.setOnClickListener {
+                adContainer.visibility = View.GONE
+                ivCloseAd.visibility = View.GONE
+                handler.postDelayed(showAdRunnable, 10000)
+            }
+        }
+    }
+
+    private fun updateVipButtonState(btnBuyVip: Button?) {
+        btnBuyVip?.apply {
+            if (isVip) {
+                isEnabled = false
+                text = getString(R.string.vip_activated)
+            } else {
+                isEnabled = true
+                text = getString(R.string.buy_vip)
+            }
+        }
     }
 }

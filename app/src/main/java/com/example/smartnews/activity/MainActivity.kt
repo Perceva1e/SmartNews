@@ -82,7 +82,6 @@ class MainActivity : AppCompatActivity() {
             }
         }
 
-        // Загружаем рекламу
         adView.loadAd(adRequest)
 
         ivCloseAd.setOnClickListener {

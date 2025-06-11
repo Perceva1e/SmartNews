@@ -23,6 +23,9 @@
             android:name=".auth.LoginActivity"
             android:exported="false" />
         <activity
+            android:name=".activity.PaymentActivity"
+            android:exported="false" />
+        <activity
             android:name=".auth.RegisterActivity"
             android:exported="true">
             <intent-filter>

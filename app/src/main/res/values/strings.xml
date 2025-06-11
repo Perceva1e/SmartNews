@@ -44,4 +44,16 @@
     <string name="language_icon_desc">Language icon</string>
     <string name="currency_icon_desc">Currency icon</string>
     <string name="close_ad">Close add</string>
+    <string name="buy_vip">Buy VIP</string>
+    <string name="payment_title">Pay for VIP subscription</string>
+    <string name="card_number_hint">Card number (16 digits)</string>
+    <string name="card_holder_hint">Cardholder name</string>
+    <string name="expiration_month_hint">Month (MM)</string>
+    <string name="expiration_year_hint">Year (YY)</string>
+    <string name="cvv_hint">CVV (3 digits)</string>
+    <string name="pay_button">Pay</string>
+    <string name="success_vip_message">VIP subscription activated, ads disabled</string>
+    <string name="error_invalid_fields">Please fill in all fields correctly.</string>
+    <string name="back_button">Back</string>
+    <string name="vip_activated">VIP is activated</string>
 </resources>

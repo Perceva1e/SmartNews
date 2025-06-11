@@ -44,4 +44,16 @@
     <string name="language_icon_desc">Значок языка</string>
     <string name="currency_icon_desc">Значок валюты</string>
     <string name="close_ad">Закрыть рекламу</string>
+    <string name="buy_vip">Купить VIP</string>
+    <string name="payment_title">Оплата VIP-подписки</string>
+    <string name="card_number_hint">Номер карты (16 цифр)</string>
+    <string name="card_holder_hint">Имя держателя карты</string>
+    <string name="expiration_month_hint">Месяц (MM)</string>
+    <string name="expiration_year_hint">Год (YY)</string>
+    <string name="cvv_hint">CVV (3 цифры)</string>
+    <string name="pay_button">Оплатить</string>
+    <string name="success_vip_message">VIP-подписка активирована, реклама отключена</string>
+    <string name="error_invalid_fields">Пожалуйста, заполните все поля правильно</string>
+    <string name="back_button">Назад</string>
+    <string name="vip_activated">VIP активирован</string>
 </resources>
