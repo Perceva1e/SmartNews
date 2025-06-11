@@ -14,7 +14,6 @@ import com.example.diplom.utils.SecurityUtils
 import com.example.diplom.utils.isValidEmail
 import com.example.diplom.utils.showToast
 import com.example.diplom.viewmodel.AuthViewModelFactory
-import com.google.firebase.auth.FirebaseAuth
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
@@ -22,14 +21,11 @@ import kotlinx.coroutines.launch
 class LoginActivity : BaseActivity() {
     private lateinit var binding: ActivityLoginBinding
     private lateinit var viewModel: AuthViewModel
-    private lateinit var auth: FirebaseAuth
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         binding = ActivityLoginBinding.inflate(layoutInflater)
         setContentView(binding.root)
-
-        auth = FirebaseAuth.getInstance()
 
         val repository = NewsRepository(
             AppDatabase.getDatabase(this).userDao(),
@@ -65,32 +61,12 @@ class LoginActivity : BaseActivity() {
     }
 
     private fun authenticateUser(email: String, password: String) {
-        auth.signInWithEmailAndPassword(email, password)
-            .addOnCompleteListener { task ->
-                if (task.isSuccessful) {
-                    val firebaseUser = auth.currentUser
-                    if (firebaseUser?.isEmailVerified == true) {
-                        CoroutineScope(Dispatchers.Main).launch {
-                            val localUser = viewModel.login(email, SecurityUtils.sha256(password))
-                            localUser?.let {
-                                startMainActivity(it.id)
-                            } ?: showToast("Local user data not found")
-                        }
-                    } else {
-                        showToast("Please verify your email first")
-                        auth.signOut()
-                    }
-                } else {
-                    CoroutineScope(Dispatchers.Main).launch {
-                        // Fallback to local authentication
-                        val localUser = viewModel.login(email, SecurityUtils.sha256(password))
-                        localUser?.let {
-                            showToast("Firebase authentication failed, using local data")
-                            startMainActivity(it.id)
-                        } ?: showToast("Invalid credentials")
-                    }
-                }
-            }
+        CoroutineScope(Dispatchers.Main).launch {
+            val localUser = viewModel.login(email, SecurityUtils.sha256(password))
+            localUser?.let {
+                startMainActivity(it.id)
+            } ?: showToast("Invalid credentials")
+        }
     }
 
     private fun startMainActivity(userId: Int) {

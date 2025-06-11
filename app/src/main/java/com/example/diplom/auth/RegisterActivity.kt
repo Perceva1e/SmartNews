@@ -3,7 +3,6 @@ package com.example.diplom.auth
 import android.content.Intent
 import android.os.Bundle
 import android.util.Log
-
 import androidx.lifecycle.ViewModelProvider
 import com.example.diplom.R
 import com.example.diplom.api.NewsApi
@@ -11,14 +10,12 @@ import com.example.diplom.database.AppDatabase
 import com.example.diplom.database.entity.User
 import com.example.diplom.databinding.ActivityRegisterBinding
 import com.example.diplom.news.BaseActivity
-import com.example.diplom.news.EmailVerificationActivity
+import com.example.diplom.news.MainActivity
 import com.example.diplom.repository.NewsRepository
 import com.example.diplom.utils.SecurityUtils
 import com.example.diplom.utils.isValidEmail
 import com.example.diplom.utils.showToast
 import com.example.diplom.viewmodel.AuthViewModelFactory
-import com.google.firebase.auth.FirebaseAuth
-import com.google.firebase.auth.UserProfileChangeRequest
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
@@ -26,14 +23,11 @@ import kotlinx.coroutines.launch
 class RegisterActivity : BaseActivity() {
     private lateinit var binding: ActivityRegisterBinding
     private lateinit var viewModel: AuthViewModel
-    private lateinit var auth: FirebaseAuth
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         binding = ActivityRegisterBinding.inflate(layoutInflater)
         setContentView(binding.root)
-
-        auth = FirebaseAuth.getInstance()
 
         val repository = NewsRepository(
             AppDatabase.getDatabase(this).userDao(),
@@ -79,62 +73,21 @@ class RegisterActivity : BaseActivity() {
                     return@launch
                 }
 
-                Log.d("RegisterActivity", "Attempting Firebase registration")
-                auth.createUserWithEmailAndPassword(email, password)
-                    .addOnCompleteListener { firebaseTask ->
-                        if (firebaseTask.isSuccessful) {
-                            Log.d("RegisterActivity", "Firebase user created successfully")
-                            val firebaseUser = auth.currentUser
+                Log.d("RegisterActivity", "Hashing password")
+                val hashedPassword = SecurityUtils.sha256(password)
+                Log.d("RegisterActivity", "Creating local user object")
+                val localUser = User(
+                    name = name,
+                    email = email,
+                    password = hashedPassword
+                )
 
-                            Log.d("RegisterActivity", "Updating Firebase profile with name: $name")
-                            val profileUpdates = UserProfileChangeRequest.Builder()
-                                .setDisplayName(name)
-                                .build()
+                Log.d("RegisterActivity", "Saving user to local DB")
+                val userId = viewModel.registerUser(localUser)
+                Log.d("RegisterActivity", "User saved to DB with ID: $userId")
 
-                            firebaseUser?.updateProfile(profileUpdates)
-                                ?.addOnCompleteListener { profileTask ->
-                                    if (profileTask.isSuccessful) {
-                                        Log.d("RegisterActivity", "Firebase profile updated successfully")
-                                        CoroutineScope(Dispatchers.Main).launch {
-                                            try {
-                                                Log.d("RegisterActivity", "Hashing password")
-                                                val hashedPassword = SecurityUtils.sha256(password)
-                                                Log.d("RegisterActivity", "Creating local user object")
-                                                val localUser = User(
-                                                    name = name,
-                                                    email = email,
-                                                    password = hashedPassword
-                                                )
-
-                                                Log.d("RegisterActivity", "Saving user to local DB")
-                                                val userId = viewModel.registerUser(localUser)
-                                                Log.d("RegisterActivity", "User saved to DB with ID: $userId")
-
-                                                Log.d("RegisterActivity", "Starting email verification")
-                                                startEmailVerificationActivity(userId.toInt(), email)
-                                            } catch (e: Exception) {
-                                                Log.e("RegisterActivity", "Error saving user to local DB", e)
-                                                firebaseUser.delete()
-                                                    .addOnCompleteListener {
-                                                        Log.w("RegisterActivity", "Firebase user rolled back due to local DB error")
-                                                        showToast(getString(R.string.error_registration_failed))
-                                                    }
-                                            }
-                                        }
-                                    } else {
-                                        Log.e("RegisterActivity", "Firebase profile update failed", profileTask.exception)
-                                        firebaseUser?.delete()
-                                            ?.addOnCompleteListener {
-                                                Log.w("RegisterActivity", "Firebase user rolled back due to profile update error")
-                                                showToast(getString(R.string.error_profile_update))
-                                            }
-                                    }
-                                }
-                        } else {
-                            Log.e("RegisterActivity", "Firebase registration failed", firebaseTask.exception)
-                            showToast(getString(R.string.error_registration_failed))
-                        }
-                    }
+                Log.d("RegisterActivity", "Navigating to MainActivity")
+                startMainActivity(userId.toInt())
             } catch (e: Exception) {
                 Log.e("RegisterActivity", "General registration error", e)
                 showToast(getString(R.string.error_general))
@@ -142,21 +95,13 @@ class RegisterActivity : BaseActivity() {
         }
     }
 
-    private fun startEmailVerificationActivity(userId: Int, email: String) {
-        auth.currentUser?.sendEmailVerification()
-            ?.addOnCompleteListener { task ->
-                if (task.isSuccessful) {
-                    val intent = Intent(this, EmailVerificationActivity::class.java).apply {
-                        putExtra("USER_ID", userId)
-                        putExtra("EMAIL", email)
-                        flags = Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TASK
-                    }
-                    startActivity(intent)
-                    finish()
-                } else {
-                    showToast(getString(R.string.error_verification_email))
-                }
-            }
+    private fun startMainActivity(userId: Int) {
+        val intent = Intent(this, MainActivity::class.java).apply {
+            putExtra("USER_ID", userId)
+            flags = Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TASK
+        }
+        startActivity(intent)
+        finish()
     }
 
     private fun validateInput(name: String, email: String, password: String): Boolean {
@@ -185,9 +130,5 @@ class RegisterActivity : BaseActivity() {
         }
 
         return isValid
-    }
-    override fun onBackPressed() {
-        super.onBackPressed()
-        FirebaseAuth.getInstance().signOut()
     }
 }

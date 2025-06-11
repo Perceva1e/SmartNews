@@ -22,7 +22,8 @@ android {
         javaCompileOptions {
             annotationProcessorOptions {
                 arguments += mapOf(
-                    "room.schemaLocation" to "$projectDir/schemas".toString()
+                    "room.schemaLocation" to "$projectDir/schemas",
+                    "room.incremental" to "true"
                 )
             }
         }
@@ -67,8 +68,8 @@ dependencies {
     kapt (libs.androidx.room.compiler)
 
     // Retrofit
-    implementation (libs.retrofit)
-    implementation (libs.converter.gson)
+        implementation (libs.retrofit)
+        implementation (libs.converter.gson)
 
     // Coroutines
     implementation (libs.kotlinx.coroutines.android)
