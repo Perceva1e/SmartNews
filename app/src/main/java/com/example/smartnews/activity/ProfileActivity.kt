@@ -20,6 +20,8 @@ import com.google.android.gms.ads.LoadAdError
 import com.google.android.gms.ads.MobileAds
 import com.google.android.material.bottomnavigation.BottomNavigationView
 import java.util.Locale
+import androidx.lifecycle.lifecycleScope
+import kotlinx.coroutines.launch
 
 class ProfileActivity : AppCompatActivity() {
 
@@ -34,7 +36,6 @@ class ProfileActivity : AppCompatActivity() {
         adContainer.visibility = View.VISIBLE
         adView.loadAd(adRequest)
     }
-    private var isVip: Boolean = false
     private val sharedPref by lazy { getSharedPreferences("UserPrefs", Context.MODE_PRIVATE) }
 
     override fun attachBaseContext(newBase: Context) {
@@ -58,7 +59,6 @@ class ProfileActivity : AppCompatActivity() {
 
         val currentLang = sharedPref.getString("app_language", "ru")
         val currentCurrency = sharedPref.getString("app_currency", "RUB")
-        isVip = sharedPref.getBoolean("is_vip", false)
 
         val etName = findViewById<EditText>(R.id.etName)
         val etEmail = findViewById<EditText>(R.id.etEmail)
@@ -120,19 +120,21 @@ class ProfileActivity : AppCompatActivity() {
             val currency = currencies[spCurrency.selectedItemPosition].substringBefore(" ")
 
             if (name.isNotEmpty() && email.isNotEmpty()) {
-                val existingUser = dbHelper.getUser()
-                if (existingUser != null) {
-                    dbHelper.updateUser(existingUser.id, name, email, existingUser.password, existingUser.newsCategories)
-                } else {
-                    dbHelper.addUser(name, email, "")
+                lifecycleScope.launch {
+                    val existingUser = dbHelper.getUser()
+                    if (existingUser != null) {
+                        dbHelper.updateUser(existingUser.id, name, email, existingUser.password, existingUser.newsCategories, existingUser.isVip)
+                    } else {
+                        dbHelper.addUser(name, email, "")
+                    }
+                    with(sharedPref.edit()) {
+                        putString("app_language", language)
+                        putString("app_currency", currency)
+                        apply()
+                    }
+                    setLocale(language)
+                    showCustomDialog(getString(R.string.success_title), getString(R.string.saved), R.layout.custom_dialog_success)
                 }
-                with(sharedPref.edit()) {
-                    putString("app_language", language)
-                    putString("app_currency", currency)
-                    apply()
-                }
-                setLocale(language)
-                showCustomDialog(getString(R.string.success_title), getString(R.string.saved), R.layout.custom_dialog_success)
             } else {
                 showCustomDialog(getString(R.string.error_title), getString(R.string.error_empty_fields), R.layout.custom_dialog_error)
             }
@@ -141,13 +143,15 @@ class ProfileActivity : AppCompatActivity() {
         btnDeleteAccount?.setOnClickListener {
             val existingUser = dbHelper.getUser()
             if (existingUser != null) {
-                dbHelper.deleteUser(existingUser.id)
-                with(sharedPref.edit()) {
-                    clear()
-                    apply()
-                }
-                showCustomDialog(getString(R.string.success_title), getString(R.string.success_deleted_desc), R.layout.custom_dialog_success) {
-                    finish()
+                lifecycleScope.launch {
+                    dbHelper.deleteUser(existingUser.id)
+                    with(sharedPref.edit()) {
+                        clear()
+                        apply()
+                    }
+                    showCustomDialog(getString(R.string.success_title), getString(R.string.success_deleted_desc), R.layout.custom_dialog_success) {
+                        finish()
+                    }
                 }
             } else {
                 showCustomDialog(getString(R.string.error_title), getString(R.string.error_user_not_found), R.layout.custom_dialog_error)
@@ -155,8 +159,11 @@ class ProfileActivity : AppCompatActivity() {
         }
 
         btnBuyVip?.setOnClickListener {
-            if (!isVip) {
-                startActivity(Intent(this, PaymentActivity::class.java))
+            val user = dbHelper.getUser()
+            if (user != null && !user.isVip) {
+                startActivity(Intent(this, PaymentActivity::class.java).apply {
+                    putExtra("USER_ID", userId)
+                })
             }
         }
 
@@ -197,7 +204,6 @@ class ProfileActivity : AppCompatActivity() {
 
     override fun onResume() {
         super.onResume()
-        isVip = sharedPref.getBoolean("is_vip", false)
         updateAdVisibility()
         updateVipButtonState(findViewById(R.id.btnBuyVip))
         adView.resume()
@@ -273,7 +279,8 @@ class ProfileActivity : AppCompatActivity() {
     }
 
     private fun updateAdVisibility() {
-        if (isVip) {
+        val user = dbHelper.getUser()
+        if (user != null && user.isVip) {
             adContainer.visibility = View.GONE
             handler.removeCallbacks(showAdRunnable)
         } else {
@@ -300,8 +307,9 @@ class ProfileActivity : AppCompatActivity() {
     }
 
     private fun updateVipButtonState(btnBuyVip: Button?) {
+        val user = dbHelper.getUser()
         btnBuyVip?.apply {
-            if (isVip) {
+            if (user != null && user.isVip) {
                 isEnabled = false
                 text = getString(R.string.vip_activated)
             } else {

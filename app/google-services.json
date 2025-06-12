@@ -1,0 +1,49 @@
+{
+  "project_info": {
+    "project_number": "1021161692643",
+    "firebase_url": "https://percevale-69198-default-rtdb.firebaseio.com",
+    "project_id": "percevale-69198",
+    "storage_bucket": "percevale-69198.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:1021161692643:android:7c1200dad250e6f8ebd4d6",
+        "android_client_info": {
+          "package_name": "com.example.diplom"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyBACaY04Tsjabq1UnT5Yg1208HM3BGMdBc"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    },
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:1021161692643:android:348daa02682b6f73ebd4d6",
+        "android_client_info": {
+          "package_name": "com.example.smartnews"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyBACaY04Tsjabq1UnT5Yg1208HM3BGMdBc"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

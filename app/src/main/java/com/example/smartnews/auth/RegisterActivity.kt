@@ -12,6 +12,9 @@ import com.example.smartnews.R
 import com.example.smartnews.activity.MainActivity
 import com.example.smartnews.bd.DatabaseHelper
 import java.util.Locale
+import androidx.lifecycle.lifecycleScope
+import com.google.firebase.FirebaseApp
+import kotlinx.coroutines.launch
 
 class RegisterActivity : AppCompatActivity() {
     private lateinit var etName: EditText
@@ -26,6 +29,7 @@ class RegisterActivity : AppCompatActivity() {
         val savedLang = sharedPref.getString("app_language", "ru")
         setLocale(savedLang ?: "ru")
 
+        FirebaseApp.initializeApp(this)
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_register)
 
@@ -46,16 +50,22 @@ class RegisterActivity : AppCompatActivity() {
                 return@setOnClickListener
             }
 
-            val result = localDb.addUser(name, email, password)
-            if (result != -1L) {
-                showCustomDialog(getString(R.string.success_title), getString(R.string.success_registration), R.layout.custom_dialog_success) {
-                    startActivity(Intent(this, MainActivity::class.java).apply {
-                        putExtra("USER_ID", result.toInt())
-                    })
-                    finish()
+            lifecycleScope.launch {
+                try {
+                    val result = localDb.addUser(name, email, password)
+                    if (result != -1L) {
+                        showCustomDialog(getString(R.string.success_title), getString(R.string.success_registration), R.layout.custom_dialog_success) {
+                            startActivity(Intent(this@RegisterActivity, MainActivity::class.java).apply {
+                                putExtra("USER_ID", result.toInt())
+                            })
+                            finish()
+                        }
+                    } else {
+                        showCustomDialog(getString(R.string.error_title), getString(R.string.error_registration), R.layout.custom_dialog_error)
+                    }
+                } catch (e: Exception) {
+                    showCustomDialog(getString(R.string.error_title), getString(R.string.error_registration), R.layout.custom_dialog_error)
                 }
-            } else {
-                showCustomDialog(getString(R.string.error_title), getString(R.string.error_registration), R.layout.custom_dialog_error)
             }
         }
 

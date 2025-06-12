@@ -14,6 +14,7 @@ import androidx.recyclerview.widget.LinearLayoutManager
 import com.example.smartnews.R
 import com.example.smartnews.adapter.NewsAdapter
 import com.example.smartnews.adapter.NewsLoader
+import com.example.smartnews.bd.DatabaseHelper
 import com.google.android.gms.ads.AdListener
 import com.google.android.gms.ads.AdRequest
 import com.google.android.gms.ads.AdView
@@ -37,7 +38,7 @@ class MainActivity : AppCompatActivity() {
         adView.loadAd(adRequest)
     }
     private val sharedPref by lazy { getSharedPreferences("UserPrefs", MODE_PRIVATE) }
-    private var isVip: Boolean = false
+    private lateinit var dbHelper: DatabaseHelper
 
     override fun onCreate(savedInstanceState: Bundle?) {
         val savedLang = sharedPref.getString("app_language", "ru")
@@ -54,7 +55,7 @@ class MainActivity : AppCompatActivity() {
         }
         Log.d("MainActivity", "User ID: $userId received, proceeding")
 
-        isVip = sharedPref.getBoolean("is_vip", false)
+        dbHelper = DatabaseHelper(this)
 
         recyclerView = findViewById(R.id.recyclerView)
         recyclerView.layoutManager = LinearLayoutManager(this)
@@ -69,33 +70,7 @@ class MainActivity : AppCompatActivity() {
         ivCloseAd = findViewById(R.id.ivCloseAd)
         adRequest = AdRequest.Builder().build()
 
-        if (!isVip) {
-            MobileAds.initialize(this) {}
-            ivCloseAd.visibility = View.GONE
-
-            adView.adListener = object : AdListener() {
-                override fun onAdLoaded() {
-                    super.onAdLoaded()
-                    ivCloseAd.visibility = View.VISIBLE
-                }
-
-                override fun onAdFailedToLoad(error: LoadAdError) {
-                    super.onAdFailedToLoad(error)
-                    ivCloseAd.visibility = View.GONE
-                    adContainer.visibility = View.GONE
-                }
-            }
-
-            adView.loadAd(adRequest)
-
-            ivCloseAd.setOnClickListener {
-                adContainer.visibility = View.GONE
-                ivCloseAd.visibility = View.GONE
-                handler.postDelayed(showAdRunnable, 10000)
-            }
-        } else {
-            adContainer.visibility = View.GONE
-        }
+        updateAdVisibility()
     }
 
     override fun onPause() {
@@ -105,10 +80,10 @@ class MainActivity : AppCompatActivity() {
 
     override fun onResume() {
         super.onResume()
-        isVip = sharedPref.getBoolean("is_vip", false)
         adView.resume()
         findViewById<BottomNavigationView>(R.id.bottomNavigation)?.selectedItemId = R.id.navigation_home
         loadNews()
+        updateAdVisibility()
     }
 
     override fun onDestroy() {
@@ -164,5 +139,34 @@ class MainActivity : AppCompatActivity() {
         val config = Configuration()
         config.setLocale(locale)
         baseContext.resources.updateConfiguration(config, baseContext.resources.displayMetrics)
+    }
+
+    private fun updateAdVisibility() {
+        val user = dbHelper.getUser()
+        if (user != null && user.isVip) {
+            adContainer.visibility = View.GONE
+            handler.removeCallbacks(showAdRunnable)
+        } else {
+            MobileAds.initialize(this) {}
+            ivCloseAd.visibility = View.GONE
+            adView.adListener = object : AdListener() {
+                override fun onAdLoaded() {
+                    super.onAdLoaded()
+                    ivCloseAd.visibility = View.VISIBLE
+                }
+
+                override fun onAdFailedToLoad(error: LoadAdError) {
+                    super.onAdFailedToLoad(error)
+                    ivCloseAd.visibility = View.GONE
+                    adContainer.visibility = View.GONE
+                }
+            }
+            adView.loadAd(adRequest)
+            ivCloseAd.setOnClickListener {
+                adContainer.visibility = View.GONE
+                ivCloseAd.visibility = View.GONE
+                handler.postDelayed(showAdRunnable, 10000)
+            }
+        }
     }
 }

@@ -1,22 +1,29 @@
 package com.example.smartnews.activity
 
 import android.app.AlertDialog
-import android.content.Context
 import android.os.Bundle
 import android.view.LayoutInflater
 import android.widget.EditText
 import android.widget.ImageView
 import androidx.appcompat.app.AppCompatActivity
+import androidx.lifecycle.lifecycleScope
 import com.example.smartnews.R
+import com.example.smartnews.bd.DatabaseHelper
 import com.google.android.material.button.MaterialButton
+import kotlinx.coroutines.launch
 
 class PaymentActivity : AppCompatActivity() {
 
-    private val sharedPref by lazy { getSharedPreferences("UserPrefs", Context.MODE_PRIVATE) }
+    private lateinit var dbHelper: DatabaseHelper
+    private var userId: Int = -1
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_payment)
+
+        dbHelper = DatabaseHelper(this)
+        userId = intent.getIntExtra("USER_ID", -1)
+        if (userId == -1) finish()
 
         val etCardNumber = findViewById<EditText>(R.id.etCardNumber)
         val etCardHolder = findViewById<EditText>(R.id.etCardHolder)
@@ -34,16 +41,32 @@ class PaymentActivity : AppCompatActivity() {
             val cvv = etCvv.text.toString().trim()
 
             if (validateCardData(cardNumber, cardHolder, expirationMonth, expirationYear, cvv)) {
-                with(sharedPref.edit()) {
-                    putBoolean("is_vip", true)
-                    apply()
-                }
-                showCustomDialog(
-                    getString(R.string.success_title),
-                    getString(R.string.success_vip_message),
-                    R.layout.custom_dialog_success
-                ) {
-                    finish()
+                val user = dbHelper.getUser()
+                if (user != null) {
+                    lifecycleScope.launch {
+                        try {
+                            dbHelper.updateUser(user.id, user.name, user.email, user.password, user.newsCategories, true)
+                            showCustomDialog(
+                                getString(R.string.success_title),
+                                getString(R.string.success_vip_message),
+                                R.layout.custom_dialog_success
+                            ) {
+                                finish()
+                            }
+                        } catch (e: Exception) {
+                            showCustomDialog(
+                                getString(R.string.error_title),
+                                getString(R.string.error_operation_failed),
+                                R.layout.custom_dialog_error
+                            )
+                        }
+                    }
+                } else {
+                    showCustomDialog(
+                        getString(R.string.error_title),
+                        getString(R.string.error_user_not_found),
+                        R.layout.custom_dialog_error
+                    )
                 }
             } else {
                 showCustomDialog(

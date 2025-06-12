@@ -2,6 +2,7 @@ plugins {
     alias(libs.plugins.android.application)
     alias(libs.plugins.kotlin.android)
     id("kotlin-kapt")
+    id("com.google.gms.google-services")
 }
 
 android {
@@ -60,4 +61,6 @@ dependencies {
     implementation (libs.glide)
     kapt (libs.compiler)
     implementation ("com.google.android.gms:play-services-ads:21.5.0")
+    implementation ("com.google.firebase:firebase-firestore-ktx:24.10.0")
+    implementation ("org.jetbrains.kotlinx:kotlinx-coroutines-play-services:1.8.0")
 }

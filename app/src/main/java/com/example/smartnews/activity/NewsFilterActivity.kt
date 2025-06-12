@@ -15,6 +15,8 @@ import com.example.smartnews.adapter.CategoryAdapter
 import com.example.smartnews.bd.DatabaseHelper
 import com.google.android.material.button.MaterialButton
 import java.util.*
+import androidx.lifecycle.lifecycleScope
+import kotlinx.coroutines.launch
 
 class NewsFilterActivity : AppCompatActivity() {
 
@@ -80,12 +82,23 @@ class NewsFilterActivity : AppCompatActivity() {
             Log.d(TAG, "Saving categories: $categoriesToSave")
             val user = dbHelper.getUser()
             if (user != null) {
-                dbHelper.updateUser(user.id, user.name, user.email, user.password, categoriesToSave)
-                showCustomDialog(
-                    getString(R.string.success_title),
-                    getString(R.string.filter_saved),
-                    R.layout.custom_dialog_success
-                ) { finish() }
+                lifecycleScope.launch {
+                    try {
+                        dbHelper.updateUser(user.id, user.name, user.email, user.password, categoriesToSave, user.isVip)
+                        showCustomDialog(
+                            getString(R.string.success_title),
+                            getString(R.string.filter_saved),
+                            R.layout.custom_dialog_success
+                        ) { finish() }
+                    } catch (e: Exception) {
+                        Log.e(TAG, "Error saving categories: ${e.message}")
+                        showCustomDialog(
+                            getString(R.string.error_title),
+                            getString(R.string.error_operation_failed),
+                            R.layout.custom_dialog_error
+                        )
+                    }
+                }
             } else {
                 Log.e(TAG, "User not found")
                 showCustomDialog(
@@ -102,12 +115,23 @@ class NewsFilterActivity : AppCompatActivity() {
             adapter.notifyDataSetChanged()
             val user = dbHelper.getUser()
             if (user != null) {
-                dbHelper.updateUser(user.id, user.name, user.email, user.password, null)
-                showCustomDialog(
-                    getString(R.string.success_title),
-                    getString(R.string.filter_cleared),
-                    R.layout.custom_dialog_success
-                )
+                lifecycleScope.launch {
+                    try {
+                        dbHelper.updateUser(user.id, user.name, user.email, user.password, null, user.isVip)
+                        showCustomDialog(
+                            getString(R.string.success_title),
+                            getString(R.string.filter_cleared),
+                            R.layout.custom_dialog_success
+                        )
+                    } catch (e: Exception) {
+                        Log.e(TAG, "Error clearing categories: ${e.message}")
+                        showCustomDialog(
+                            getString(R.string.error_title),
+                            getString(R.string.error_operation_failed),
+                            R.layout.custom_dialog_error
+                        )
+                    }
+                }
             } else {
                 Log.e(TAG, "User not found")
                 showCustomDialog(
