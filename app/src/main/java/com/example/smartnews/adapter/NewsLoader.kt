@@ -4,42 +4,47 @@ import android.content.Context
 import android.net.ConnectivityManager
 import android.net.NetworkCapabilities
 import android.util.Log
-import androidx.appcompat.app.AppCompatActivity
-import androidx.recyclerview.widget.RecyclerView
-import com.example.smartnews.api.NewsApi
-import kotlinx.coroutines.CoroutineScope
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.launch
-import kotlinx.coroutines.withContext
-import android.view.LayoutInflater
 import androidx.appcompat.app.AlertDialog
 import com.example.smartnews.R
+import com.example.smartnews.api.NewsApi
+import com.example.smartnews.bd.DatabaseHelper
+import kotlinx.coroutines.*
+import android.view.LayoutInflater
+import com.example.smartnews.api.model.News
 
 object NewsLoader {
     private const val TAG = "NewsLoader"
 
-    fun loadNews(context: Context, adapter: RecyclerView.Adapter<*>) {
+    fun loadNews(context: Context, adapter: NewsAdapter, userId: Int) {
         if (!isInternetAvailable(context)) {
-            showCustomDialog(context, getString(context, R.string.error_title), getString(context, R.string.error_no_internet_desc), R.layout.custom_dialog_error)
+            showCustomDialog(context, getString(context, R.string.error_title), getString(context, R.string.error_no_internet_desc))
             return
         }
 
         CoroutineScope(Dispatchers.IO).launch {
             try {
-                val response = NewsApi.service.getTopHeadlines()
-                Log.d(TAG, "Response: $response")
-                val newsList = response.articles
+                val dbHelper = DatabaseHelper(context)
+                val user = dbHelper.getUser()
+                val categories = user?.newsCategories?.split(",")?.filter { it.isNotBlank() }?.takeIf { it.isNotEmpty() }
+                    ?: listOf("general")
+
+                val newsItems = mutableListOf<News>()
+                categories.forEach { category ->
+                    val response = NewsApi.service.getTopHeadlines(category = category)
+                    newsItems.addAll(response.articles)
+                }
+
                 withContext(Dispatchers.Main) {
-                    if (newsList.isNotEmpty()) {
-                        (adapter as NewsAdapter).setNews(newsList)
+                    if (newsItems.isNotEmpty()) {
+                        adapter.setNews(newsItems.distinctBy { it.title })
                     } else {
-                        showCustomDialog(context, getString(context, R.string.error_title), getString(context, R.string.error_no_news_desc), R.layout.custom_dialog_error)
+                        showCustomDialog(context, getString(context, R.string.error_title), getString(context, R.string.error_no_news_desc))
                     }
                 }
             } catch (e: Exception) {
                 withContext(Dispatchers.Main) {
                     Log.e(TAG, "Error loading news", e)
-                    showCustomDialog(context, getString(context, R.string.error_title), getString(context, R.string.error_loading_news_desc), R.layout.custom_dialog_error)
+                    showCustomDialog(context, getString(context, R.string.error_title), getString(context, R.string.error_loading_news_desc))
                 }
             }
         }
@@ -52,18 +57,12 @@ object NewsLoader {
         return capabilities.hasCapability(NetworkCapabilities.NET_CAPABILITY_INTERNET)
     }
 
-    private fun runOnUiThread(context: Context, action: () -> Unit) {
-        if (context is AppCompatActivity) {
-            context.runOnUiThread(action)
-        }
-    }
-
     private fun getString(context: Context, resId: Int): String {
         return context.getString(resId)
     }
 
-    private fun showCustomDialog(context: Context, title: String, message: String, layoutResId: Int) {
-        val dialogView = LayoutInflater.from(context).inflate(layoutResId, null)
+    private fun showCustomDialog(context: Context, title: String, message: String) {
+        val dialogView = LayoutInflater.from(context).inflate(R.layout.custom_dialog_error, null)
         val dialogBuilder = AlertDialog.Builder(context)
             .setView(dialogView)
             .setCancelable(true)

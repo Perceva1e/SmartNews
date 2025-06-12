@@ -56,4 +56,10 @@
     <string name="error_invalid_fields">Please fill in all fields correctly.</string>
     <string name="back_button">Back</string>
     <string name="vip_activated">VIP is activated</string>
+    <string name="news_filter">News filter</string>
+    <string name="news_filter_title">Setting up news</string>
+    <string name="save_filter">Save filter</string>
+    <string name="clear_filter">Clear filter</string>
+    <string name="filter_saved">Filter saved</string>
+    <string name="filter_cleared">Filter cleaned</string>
 </resources>

@@ -9,13 +9,7 @@ import android.os.Handler
 import android.os.Looper
 import android.view.LayoutInflater
 import android.view.View
-import android.widget.AdapterView
-import android.widget.ArrayAdapter
-import android.widget.Button
-import android.widget.EditText
-import android.widget.FrameLayout
-import android.widget.ImageView
-import android.widget.Spinner
+import android.widget.*
 import androidx.appcompat.app.AppCompatActivity
 import com.example.smartnews.R
 import com.example.smartnews.bd.DatabaseHelper
@@ -65,6 +59,7 @@ class ProfileActivity : AppCompatActivity() {
         val btnSave = findViewById<Button>(R.id.btnSave)
         val btnDeleteAccount = findViewById<Button>(R.id.btnDeleteAccount)
         val btnBuyVip = findViewById<Button>(R.id.btnBuyVip)
+        val btnNewsFilter = findViewById<Button>(R.id.btnNewsFilter)
 
         val user = dbHelper.getUser()
         if (user != null) {
@@ -117,7 +112,7 @@ class ProfileActivity : AppCompatActivity() {
             if (name.isNotEmpty() && email.isNotEmpty()) {
                 val existingUser = dbHelper.getUser()
                 if (existingUser != null) {
-                    dbHelper.updateUser(existingUser.id, name, email, existingUser.password)
+                    dbHelper.updateUser(existingUser.id, name, email, existingUser.password, existingUser.newsCategories)
                 } else {
                     dbHelper.addUser(name, email, "")
                 }
@@ -153,6 +148,12 @@ class ProfileActivity : AppCompatActivity() {
             if (!isVip) {
                 startActivity(Intent(this, PaymentActivity::class.java))
             }
+        }
+
+        btnNewsFilter?.setOnClickListener {
+            startActivity(Intent(this, NewsFilterActivity::class.java).apply {
+                putExtra("USER_ID", userId)
+            })
         }
 
         updateVipButtonState(btnBuyVip)
@@ -237,7 +238,7 @@ class ProfileActivity : AppCompatActivity() {
         val dialog = dialogBuilder.create()
         dialog.window?.setBackgroundDrawableResource(android.R.color.transparent)
 
-        dialogView.findViewById<androidx.appcompat.widget.AppCompatTextView>(R.id.tvMessage)?.text = title
+        dialogView.findViewById<androidx.appcompat.widget.AppCompatTextView>(R.id.tvTitle)?.text = title
         dialogView.findViewById<androidx.appcompat.widget.AppCompatTextView>(R.id.tvDescription)?.text = message
         dialogView.findViewById<com.google.android.material.button.MaterialButton>(R.id.btnOk)?.setOnClickListener {
             onOk?.invoke()

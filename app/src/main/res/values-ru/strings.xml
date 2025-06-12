@@ -56,4 +56,10 @@
     <string name="error_invalid_fields">Пожалуйста, заполните все поля правильно</string>
     <string name="back_button">Назад</string>
     <string name="vip_activated">VIP активирован</string>
+    <string name="news_filter">Фильтр новостей</string>
+    <string name="news_filter_title">Настройка новостей</string>
+    <string name="save_filter">Сохранить фильтр</string>
+    <string name="clear_filter">Очистить фильтр</string>
+    <string name="filter_saved">Фильтр сохранён</string>
+    <string name="filter_cleared">Фильтр очищен</string>
 </resources>

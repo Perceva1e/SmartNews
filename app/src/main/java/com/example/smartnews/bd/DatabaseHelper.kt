@@ -14,6 +14,7 @@ class DatabaseHelper(context: Context) : SQLiteOpenHelper(context, DATABASE_NAME
         private const val COLUMN_NAME = "name"
         private const val COLUMN_EMAIL = "email"
         private const val COLUMN_PASSWORD = "password"
+        private const val COLUMN_NEWS_CATEGORIES = "news_categories"
     }
 
     override fun onCreate(db: SQLiteDatabase) {
@@ -21,21 +22,29 @@ class DatabaseHelper(context: Context) : SQLiteOpenHelper(context, DATABASE_NAME
                 + "$COLUMN_ID INTEGER PRIMARY KEY AUTOINCREMENT,"
                 + "$COLUMN_NAME TEXT,"
                 + "$COLUMN_EMAIL TEXT,"
-                + "$COLUMN_PASSWORD TEXT)")
+                + "$COLUMN_PASSWORD TEXT,"
+                + "$COLUMN_NEWS_CATEGORIES TEXT)")
         db.execSQL(createTable)
     }
 
     override fun onUpgrade(db: SQLiteDatabase, oldVersion: Int, newVersion: Int) {
-        db.execSQL("DROP TABLE IF EXISTS $TABLE_NAME")
-        onCreate(db)
+        if (oldVersion < 3) {
+            db.execSQL("ALTER TABLE $TABLE_NAME RENAME TO temp_users")
+            onCreate(db)
+            db.execSQL("INSERT INTO $TABLE_NAME ($COLUMN_ID, $COLUMN_NAME, $COLUMN_EMAIL, $COLUMN_PASSWORD) " +
+                    "SELECT $COLUMN_ID, $COLUMN_NAME, $COLUMN_EMAIL, $COLUMN_PASSWORD FROM temp_users")
+            db.execSQL("DROP TABLE temp_users")
+        }
     }
 
-    fun addUser(name: String, email: String, password: String): Long {
+    fun addUser(name: String, email: String, password: String, newsCategories: String? = null): Long {
         val db = this.writableDatabase
-        val values = ContentValues()
-        values.put(COLUMN_NAME, name)
-        values.put(COLUMN_EMAIL, email)
-        values.put(COLUMN_PASSWORD, password)
+        val values = ContentValues().apply {
+            put(COLUMN_NAME, name)
+            put(COLUMN_EMAIL, email)
+            put(COLUMN_PASSWORD, password)
+            put(COLUMN_NEWS_CATEGORIES, newsCategories)
+        }
         val id = db.insert(TABLE_NAME, null, values)
         db.close()
         return id
@@ -43,9 +52,15 @@ class DatabaseHelper(context: Context) : SQLiteOpenHelper(context, DATABASE_NAME
 
     fun checkUser(email: String, password: String): User? {
         val db = readableDatabase
-        val cursor = db.rawQuery("SELECT id, name, email, password FROM users WHERE email = ? AND password = ?", arrayOf(email, password))
+        val cursor = db.rawQuery("SELECT * FROM $TABLE_NAME WHERE $COLUMN_EMAIL = ? AND $COLUMN_PASSWORD = ?", arrayOf(email, password))
         return if (cursor.moveToFirst()) {
-            User(cursor.getInt(0), cursor.getString(1), cursor.getString(2), cursor.getString(3))
+            User(
+                id = cursor.getInt(cursor.getColumnIndexOrThrow(COLUMN_ID)),
+                name = cursor.getString(cursor.getColumnIndexOrThrow(COLUMN_NAME)),
+                email = cursor.getString(cursor.getColumnIndexOrThrow(COLUMN_EMAIL)),
+                password = cursor.getString(cursor.getColumnIndexOrThrow(COLUMN_PASSWORD)),
+                newsCategories = cursor.getString(cursor.getColumnIndexOrThrow(COLUMN_NEWS_CATEGORIES))
+            )
         } else {
             cursor.close()
             null
@@ -55,8 +70,8 @@ class DatabaseHelper(context: Context) : SQLiteOpenHelper(context, DATABASE_NAME
     fun getUser(): User? {
         val db = this.readableDatabase
         val cursor = db.query(
-            "users",
-            arrayOf("id", "name", "email", "password"),
+            TABLE_NAME,
+            arrayOf(COLUMN_ID, COLUMN_NAME, COLUMN_EMAIL, COLUMN_PASSWORD, COLUMN_NEWS_CATEGORIES),
             null,
             null,
             null,
@@ -65,36 +80,44 @@ class DatabaseHelper(context: Context) : SQLiteOpenHelper(context, DATABASE_NAME
         )
         var user: User? = null
         if (cursor.moveToFirst()) {
-            val id = cursor.getInt(cursor.getColumnIndexOrThrow("id"))
-            val name = cursor.getString(cursor.getColumnIndexOrThrow("name"))
-            val email = cursor.getString(cursor.getColumnIndexOrThrow("email"))
-            val password = cursor.getString(cursor.getColumnIndexOrThrow("password"))
-            user = User(id, name, email, password)
+            user = User(
+                id = cursor.getInt(cursor.getColumnIndexOrThrow(COLUMN_ID)),
+                name = cursor.getString(cursor.getColumnIndexOrThrow(COLUMN_NAME)),
+                email = cursor.getString(cursor.getColumnIndexOrThrow(COLUMN_EMAIL)),
+                password = cursor.getString(cursor.getColumnIndexOrThrow(COLUMN_PASSWORD)),
+                newsCategories = cursor.getString(cursor.getColumnIndexOrThrow(COLUMN_NEWS_CATEGORIES))
+            )
         }
         cursor.close()
         db.close()
         return user
     }
 
-    fun updateUser(id: Int, name: String, email: String, password: String): Int {
+    fun updateUser(id: Int, name: String, email: String, password: String, newsCategories: String? = null): Int {
         val db = this.writableDatabase
         val values = ContentValues().apply {
-            put("name", name)
-            put("email", email)
-            put("password", password)
+            put(COLUMN_NAME, name)
+            put(COLUMN_EMAIL, email)
+            put(COLUMN_PASSWORD, password)
+            put(COLUMN_NEWS_CATEGORIES, newsCategories)
         }
-        val rowsAffected = db.update("users", values, "id = ?", arrayOf(id.toString()))
+        val rowsAffected = db.update(TABLE_NAME, values, "$COLUMN_ID = ?", arrayOf(id.toString()))
         db.close()
         return rowsAffected
     }
 
     fun deleteUser(id: Int): Int {
         val db = this.writableDatabase
-        val rowsAffected = db.delete("users", "id = ?", arrayOf(id.toString()))
+        val rowsAffected = db.delete(TABLE_NAME, "$COLUMN_ID = ?", arrayOf(id.toString()))
         db.close()
         return rowsAffected
     }
 }
 
-data class User(val id: Int, val name: String, val email: String, val password: String)
-
+data class User(
+    val id: Int,
+    val name: String,
+    val email: String,
+    val password: String,
+    val newsCategories: String? = null
+)

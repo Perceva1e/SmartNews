@@ -36,9 +36,10 @@ class MainActivity : AppCompatActivity() {
         adContainer.visibility = View.VISIBLE
         adView.loadAd(adRequest)
     }
+    private val sharedPref by lazy { getSharedPreferences("UserPrefs", MODE_PRIVATE) }
+    private var isVip: Boolean = false
 
     override fun onCreate(savedInstanceState: Bundle?) {
-        val sharedPref = getSharedPreferences("UserPrefs", MODE_PRIVATE)
         val savedLang = sharedPref.getString("app_language", "ru")
         setLocale(savedLang ?: "ru")
 
@@ -53,6 +54,8 @@ class MainActivity : AppCompatActivity() {
         }
         Log.d("MainActivity", "User ID: $userId received, proceeding")
 
+        isVip = sharedPref.getBoolean("is_vip", false)
+
         recyclerView = findViewById(R.id.recyclerView)
         recyclerView.layoutManager = LinearLayoutManager(this)
         newsAdapter = NewsAdapter()
@@ -61,33 +64,37 @@ class MainActivity : AppCompatActivity() {
         setupBottomNavigation()
         loadNews()
 
-        MobileAds.initialize(this) {}
         adContainer = findViewById(R.id.adContainer)
         adView = findViewById(R.id.adView)
         ivCloseAd = findViewById(R.id.ivCloseAd)
         adRequest = AdRequest.Builder().build()
 
-        ivCloseAd.visibility = View.GONE
-
-        adView.adListener = object : AdListener() {
-            override fun onAdLoaded() {
-                super.onAdLoaded()
-                ivCloseAd.visibility = View.VISIBLE
-            }
-
-            override fun onAdFailedToLoad(error: LoadAdError) {
-                super.onAdFailedToLoad(error)
-                ivCloseAd.visibility = View.GONE
-                adContainer.visibility = View.GONE
-            }
-        }
-
-        adView.loadAd(adRequest)
-
-        ivCloseAd.setOnClickListener {
-            adContainer.visibility = View.GONE
+        if (!isVip) {
+            MobileAds.initialize(this) {}
             ivCloseAd.visibility = View.GONE
-            handler.postDelayed(showAdRunnable, 10000)
+
+            adView.adListener = object : AdListener() {
+                override fun onAdLoaded() {
+                    super.onAdLoaded()
+                    ivCloseAd.visibility = View.VISIBLE
+                }
+
+                override fun onAdFailedToLoad(error: LoadAdError) {
+                    super.onAdFailedToLoad(error)
+                    ivCloseAd.visibility = View.GONE
+                    adContainer.visibility = View.GONE
+                }
+            }
+
+            adView.loadAd(adRequest)
+
+            ivCloseAd.setOnClickListener {
+                adContainer.visibility = View.GONE
+                ivCloseAd.visibility = View.GONE
+                handler.postDelayed(showAdRunnable, 10000)
+            }
+        } else {
+            adContainer.visibility = View.GONE
         }
     }
 
@@ -98,8 +105,10 @@ class MainActivity : AppCompatActivity() {
 
     override fun onResume() {
         super.onResume()
+        isVip = sharedPref.getBoolean("is_vip", false)
         adView.resume()
         findViewById<BottomNavigationView>(R.id.bottomNavigation)?.selectedItemId = R.id.navigation_home
+        loadNews()
     }
 
     override fun onDestroy() {
@@ -136,12 +145,12 @@ class MainActivity : AppCompatActivity() {
     }
 
     private fun loadNews() {
-        NewsLoader.loadNews(this, newsAdapter)
+        NewsLoader.loadNews(this, newsAdapter, userId)
     }
 
     private fun applyTransition() {
         if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.UPSIDE_DOWN_CAKE) {
-            overrideActivityTransition(androidx.appcompat.app.AppCompatActivity.OVERRIDE_TRANSITION_OPEN, 0, 0)
+            overrideActivityTransition(OVERRIDE_TRANSITION_OPEN, 0, 0)
         } else {
             @Suppress("DEPRECATION")
             overridePendingTransition(0, 0)
