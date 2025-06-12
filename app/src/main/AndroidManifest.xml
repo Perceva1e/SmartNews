@@ -18,6 +18,9 @@
             android:name=".activity.ProfileActivity"
             android:exported="false" />
         <activity
+            android:name=".activity.SavedNewsActivity"
+            android:exported="false"/>
+        <activity
             android:name=".activity.MainActivity"
             android:exported="false" />
         <activity

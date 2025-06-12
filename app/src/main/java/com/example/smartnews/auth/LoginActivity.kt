@@ -54,7 +54,6 @@ class LoginActivity : AppCompatActivity() {
                 try {
                     val user = localDb.checkUser(email, password)
                     if (user != null) {
-                        // User found in local database, proceed to login
                         showCustomDialog(getString(R.string.success_title), getString(R.string.success_login), R.layout.custom_dialog_success) {
                             startActivity(Intent(this@LoginActivity, MainActivity::class.java).apply {
                                 putExtra("USER_ID", user.id)

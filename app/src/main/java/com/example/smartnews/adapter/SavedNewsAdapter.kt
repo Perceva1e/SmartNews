@@ -5,16 +5,14 @@ import android.view.ViewGroup
 import androidx.recyclerview.widget.RecyclerView
 import com.example.smartnews.R
 import com.example.smartnews.api.model.News
+import com.example.smartnews.bd.SavedNews
 import com.example.smartnews.view.NewsViewHolder
 
-class NewsAdapter(
-    private val userId: Int = -1,
-    private val category: String = "general"
-) : RecyclerView.Adapter<NewsViewHolder>() {
+class SavedNewsAdapter : RecyclerView.Adapter<NewsViewHolder>() {
 
-    private var newsList: List<News> = emptyList()
+    private var newsList: List<SavedNews> = emptyList()
 
-    fun setNews(news: List<News>) {
+    fun setSavedNews(news: List<SavedNews>) {
         newsList = news
         notifyDataSetChanged()
     }
@@ -25,7 +23,17 @@ class NewsAdapter(
     }
 
     override fun onBindViewHolder(holder: NewsViewHolder, position: Int) {
-        holder.bind(newsList[position], userId, category)
+        val savedNews = newsList[position]
+        val news = News(
+            title = savedNews.title,
+            description = savedNews.description,
+            url = savedNews.url,
+            urlToImage = savedNews.urlToImage,
+            publishedAt = savedNews.publishedAt,
+            content = null,
+            category = savedNews.category
+        )
+        holder.bind(news, 0, savedNews.category)
     }
 
     override fun getItemCount(): Int = newsList.size

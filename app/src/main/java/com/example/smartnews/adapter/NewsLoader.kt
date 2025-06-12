@@ -31,7 +31,7 @@ object NewsLoader {
                 val newsItems = mutableListOf<News>()
                 categories.forEach { category ->
                     val response = NewsApi.service.getTopHeadlines(category = category)
-                    newsItems.addAll(response.articles)
+                    newsItems.addAll(response.articles.map { it.copy(category = category) })
                 }
 
                 withContext(Dispatchers.Main) {

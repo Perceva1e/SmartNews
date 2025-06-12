@@ -2,6 +2,7 @@
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
     android:orientation="vertical"
     android:padding="16dp"
     android:background="#1A1A1A">
@@ -64,6 +65,17 @@
             android:layout_height="24dp"
             android:src="@drawable/ic_share"
             android:contentDescription="@string/share_news"
+            android:clickable="true"
+            android:focusable="true"
+            android:layout_marginEnd="8dp" />
+
+        <ImageView
+            android:id="@+id/ivSave"
+            android:layout_width="24dp"
+            android:layout_height="24dp"
+            android:src="@drawable/ic_saved"
+            app:tint="#9B59B6"
+            android:contentDescription="@string/save_news"
             android:clickable="true"
             android:focusable="true" />
     </LinearLayout>

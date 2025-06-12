@@ -113,7 +113,7 @@ class ProfileActivity : AppCompatActivity() {
             override fun onNothingSelected(parent: AdapterView<*>?) {}
         }
 
-        btnSave?.setOnClickListener {
+        btnSave.setOnClickListener {
             val name = etName.text.toString().trim()
             val email = etEmail.text.toString().trim()
             val language = if (spLanguage.selectedItemPosition == 0) "ru" else "en"
@@ -140,7 +140,7 @@ class ProfileActivity : AppCompatActivity() {
             }
         }
 
-        btnDeleteAccount?.setOnClickListener {
+        btnDeleteAccount.setOnClickListener {
             val existingUser = dbHelper.getUser()
             if (existingUser != null) {
                 lifecycleScope.launch {
@@ -149,7 +149,11 @@ class ProfileActivity : AppCompatActivity() {
                         clear()
                         apply()
                     }
-                    showCustomDialog(getString(R.string.success_title), getString(R.string.success_deleted_desc), R.layout.custom_dialog_success) {
+                    showCustomDialog(
+                        getString(R.string.success_title),
+                        getString(R.string.success_deleted_desc),
+                        R.layout.custom_dialog_success
+                    ) {
                         finish()
                     }
                 }
@@ -158,7 +162,7 @@ class ProfileActivity : AppCompatActivity() {
             }
         }
 
-        btnBuyVip?.setOnClickListener {
+        btnBuyVip.setOnClickListener {
             val user = dbHelper.getUser()
             if (user != null && !user.isVip) {
                 startActivity(Intent(this, PaymentActivity::class.java).apply {
@@ -167,7 +171,7 @@ class ProfileActivity : AppCompatActivity() {
             }
         }
 
-        btnNewsFilter?.setOnClickListener {
+        btnNewsFilter.setOnClickListener {
             startActivity(Intent(this, NewsFilterActivity::class.java).apply {
                 putExtra("USER_ID", userId)
             })
@@ -186,7 +190,14 @@ class ProfileActivity : AppCompatActivity() {
                     applyTransition()
                     true
                 }
-                R.id.navigation_saved -> true
+                R.id.navigation_saved -> {
+                    startActivity(Intent(this, SavedNewsActivity::class.java).apply {
+                        putExtra("USER_ID", userId)
+                        addFlags(Intent.FLAG_ACTIVITY_REORDER_TO_FRONT)
+                    })
+                    applyTransition()
+                    true
+                }
                 R.id.navigation_recommend -> true
                 R.id.navigation_profile -> true
                 else -> false

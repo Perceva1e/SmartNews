@@ -59,7 +59,7 @@ class MainActivity : AppCompatActivity() {
 
         recyclerView = findViewById(R.id.recyclerView)
         recyclerView.layoutManager = LinearLayoutManager(this)
-        newsAdapter = NewsAdapter()
+        newsAdapter = NewsAdapter(userId = userId)
         recyclerView.adapter = newsAdapter
 
         setupBottomNavigation()
@@ -101,6 +101,10 @@ class MainActivity : AppCompatActivity() {
                     true
                 }
                 R.id.navigation_saved -> {
+                    startActivity(Intent(this, SavedNewsActivity::class.java).apply {
+                        putExtra("USER_ID", userId)
+                    })
+                    applyTransition()
                     true
                 }
                 R.id.navigation_recommend -> {
