@@ -81,4 +81,5 @@
     <string name="category_technology">Technology</string>
     <string name="error_operation_failed">Operation failed. Please try again.</string>
     <string name="error_user_exists">A user with this email already exists.</string>
+    <string name="share_news">Share news article</string>
 </resources>

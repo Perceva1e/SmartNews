@@ -81,4 +81,5 @@
     <string name="category_technology">Технологии</string>
     <string name="error_operation_failed">Операция не удалась. Попробуйте еще раз.</string>
     <string name="error_user_exists">Пользователь с таким адресом электронной почты уже существует.</string>
+    <string name="share_news">Поделиться новостной статьей</string>
 </resources>

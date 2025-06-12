@@ -16,6 +16,7 @@ class NewsViewHolder(itemView: android.view.View) : RecyclerView.ViewHolder(item
     private val tvSource: TextView = itemView.findViewById(R.id.tvSource)
     private val tvMood: TextView = itemView.findViewById(R.id.tvMood)
     private val ivNewsImage: ImageView = itemView.findViewById(R.id.ivNewsImage)
+    private val ivShare: ImageView = itemView.findViewById(R.id.ivShare)
 
     fun bind(news: News) {
         tvTitle.text = news.title ?: "No title"
@@ -38,6 +39,17 @@ class NewsViewHolder(itemView: android.view.View) : RecyclerView.ViewHolder(item
                 .into(ivNewsImage)
         } else {
             ivNewsImage.setImageResource(android.R.drawable.ic_menu_gallery)
+        }
+
+        ivShare.setOnClickListener {
+            news.url?.let { url ->
+                val shareIntent = Intent(Intent.ACTION_SEND).apply {
+                    type = "text/plain"
+                    putExtra(Intent.EXTRA_SUBJECT, news.title ?: "News Article")
+                    putExtra(Intent.EXTRA_TEXT, url)
+                }
+                itemView.context.startActivity(Intent.createChooser(shareIntent, "Share news via"))
+            }
         }
     }
 }
