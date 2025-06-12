@@ -62,4 +62,22 @@
     <string name="clear_filter">Очистить фильтр</string>
     <string name="filter_saved">Фильтр сохранён</string>
     <string name="filter_cleared">Фильтр очищен</string>
+    <string-array name="filter_categories">
+        <item>бизнес</item>
+        <item>развлечение</item>
+        <item>общий</item>
+        <item>здоровье</item>
+        <item>наука</item>
+        <item>спорт</item>
+        <item>технология</item>
+    </string-array>
+    <string name="error_no_categories">Категории новостей не найдены</string>
+    <string name="category_business">Бизнес</string>
+    <string name="category_entertainment">Развлечения</string>
+    <string name="category_general">Общее</string>
+    <string name="category_health">Здоровье</string>
+    <string name="category_science">Наука</string>
+    <string name="category_sports">Спорт</string>
+    <string name="category_technology">Технологии</string>
+
 </resources>

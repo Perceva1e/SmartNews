@@ -6,17 +6,31 @@
     android:background="#1A1A1A"
     android:padding="16dp">
 
+    <ImageView
+        android:id="@+id/ivBack"
+        android:layout_width="24dp"
+        android:layout_height="24dp"
+        android:src="@drawable/ic_arrow_back"
+        android:contentDescription="@string/back_button"
+        android:layout_marginStart="8dp"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintBottom_toBottomOf="@id/text"
+        app:layout_constraintTop_toTopOf="@id/text"
+        app:tint="#FFFFFF" />
+
     <TextView
         android:id="@+id/text"
-        android:layout_width="match_parent"
+        android:layout_width="0dp"
         android:layout_height="wrap_content"
         android:text="@string/payment_title"
+        android:layout_marginStart="8dp"
+        android:layout_marginEnd="8dp"
         android:textColor="#FFFFFF"
         android:textSize="24sp"
         android:textStyle="bold"
-        app:layout_constraintTop_toTopOf="parent"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintEnd_toEndOf="parent" />
+        app:layout_constraintStart_toEndOf="@id/ivBack"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintTop_toTopOf="parent" />
 
     <com.google.android.material.textfield.TextInputLayout
         android:id="@+id/tilCardNumber"
@@ -149,19 +163,4 @@
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toBottomOf="@id/tilCvv" />
 
-    <com.google.android.material.button.MaterialButton
-        android:id="@+id/btnBack"
-        style="@style/Widget.MaterialComponents.Button.OutlinedButton"
-        android:layout_width="0dp"
-        android:layout_height="wrap_content"
-        android:layout_marginTop="8dp"
-        android:text="@string/back_button"
-        android:textColor="#FFFFFF"
-        app:strokeColor="#9B59B6"
-        app:strokeWidth="2dp"
-        app:icon="@drawable/ic_arrow_back"
-        app:iconTint="#FFFFFF"
-        app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@id/btnPay" />
 </androidx.constraintlayout.widget.ConstraintLayout>

@@ -5,6 +5,7 @@ import android.content.Context
 import android.os.Bundle
 import android.view.LayoutInflater
 import android.widget.EditText
+import android.widget.ImageView
 import androidx.appcompat.app.AppCompatActivity
 import com.example.smartnews.R
 import com.google.android.material.button.MaterialButton
@@ -23,7 +24,7 @@ class PaymentActivity : AppCompatActivity() {
         val etExpirationYear = findViewById<EditText>(R.id.etExpirationYear)
         val etCvv = findViewById<EditText>(R.id.etCvv)
         val btnPay = findViewById<MaterialButton>(R.id.btnPay)
-        val btnBack = findViewById<MaterialButton>(R.id.btnBack)
+        val ivBack = findViewById<ImageView>(R.id.ivBack)
 
         btnPay.setOnClickListener {
             val cardNumber = etCardNumber.text.toString().trim()
@@ -53,7 +54,7 @@ class PaymentActivity : AppCompatActivity() {
             }
         }
 
-        btnBack.setOnClickListener {
+        ivBack.setOnClickListener {
             finish()
         }
     }

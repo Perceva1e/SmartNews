@@ -37,6 +37,16 @@ class ProfileActivity : AppCompatActivity() {
     private var isVip: Boolean = false
     private val sharedPref by lazy { getSharedPreferences("UserPrefs", Context.MODE_PRIVATE) }
 
+    override fun attachBaseContext(newBase: Context) {
+        val language = newBase.getSharedPreferences("UserPrefs", Context.MODE_PRIVATE)
+            .getString("app_language", "ru") ?: "ru"
+        val locale = Locale(language)
+        Locale.setDefault(locale)
+        val config = Configuration(newBase.resources.configuration)
+        config.setLocale(locale)
+        super.attachBaseContext(newBase.createConfigurationContext(config))
+    }
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_profile)
@@ -207,11 +217,9 @@ class ProfileActivity : AppCompatActivity() {
     private fun setLocale(language: String) {
         val locale = Locale(language)
         Locale.setDefault(locale)
-
         val config = Configuration()
         config.setLocale(locale)
         baseContext.resources.updateConfiguration(config, baseContext.resources.displayMetrics)
-
         val intent = Intent(this, MainActivity::class.java).apply {
             putExtra("USER_ID", userId)
             addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP or Intent.FLAG_ACTIVITY_NEW_TASK)
@@ -234,17 +242,14 @@ class ProfileActivity : AppCompatActivity() {
         val dialogBuilder = AlertDialog.Builder(this)
             .setView(dialogView)
             .setCancelable(true)
-
         val dialog = dialogBuilder.create()
         dialog.window?.setBackgroundDrawableResource(android.R.color.transparent)
-
-        dialogView.findViewById<androidx.appcompat.widget.AppCompatTextView>(R.id.tvTitle)?.text = title
+        dialogView.findViewById<androidx.appcompat.widget.AppCompatTextView>(R.id.tvMessage)?.text = title
         dialogView.findViewById<androidx.appcompat.widget.AppCompatTextView>(R.id.tvDescription)?.text = message
         dialogView.findViewById<com.google.android.material.button.MaterialButton>(R.id.btnOk)?.setOnClickListener {
             onOk?.invoke()
             dialog.dismiss()
         }
-
         dialog.show()
     }
 
@@ -274,22 +279,18 @@ class ProfileActivity : AppCompatActivity() {
         } else {
             MobileAds.initialize(this) {}
             ivCloseAd.visibility = View.GONE
-
             adView.adListener = object : AdListener() {
                 override fun onAdLoaded() {
                     super.onAdLoaded()
                     ivCloseAd.visibility = View.VISIBLE
                 }
-
                 override fun onAdFailedToLoad(error: LoadAdError) {
                     super.onAdFailedToLoad(error)
                     ivCloseAd.visibility = View.GONE
                     adContainer.visibility = View.GONE
                 }
             }
-
             adView.loadAd(adRequest)
-
             ivCloseAd.setOnClickListener {
                 adContainer.visibility = View.GONE
                 ivCloseAd.visibility = View.GONE
