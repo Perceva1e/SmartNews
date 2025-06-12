@@ -12,6 +12,8 @@ import com.example.smartnews.bd.DatabaseHelper
 
 class SavedNewsFragment : Fragment() {
 
+    private lateinit var adapter: SavedNewsAdapter
+
     companion object {
         private const val USER_ID = "user_id"
         private const val CATEGORY = "category"
@@ -41,7 +43,14 @@ class SavedNewsFragment : Fragment() {
 
         val recyclerView = view.findViewById<RecyclerView>(R.id.recyclerView)
         recyclerView.layoutManager = LinearLayoutManager(requireContext())
-        val adapter = SavedNewsAdapter()
+
+        adapter = SavedNewsAdapter(userId, object : SavedNewsAdapter.OnNewsDeletedListener {
+            override fun onNewsDeleted() {
+                val dbHelper = DatabaseHelper(requireContext())
+                val newsList = dbHelper.getSavedNewsByCategory(userId, category)
+                adapter.setSavedNews(newsList)
+            }
+        })
         recyclerView.adapter = adapter
 
         val dbHelper = DatabaseHelper(requireContext())

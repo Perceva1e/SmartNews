@@ -4,11 +4,13 @@ import android.view.LayoutInflater
 import android.view.ViewGroup
 import androidx.recyclerview.widget.RecyclerView
 import com.example.smartnews.R
-import com.example.smartnews.api.model.News
 import com.example.smartnews.bd.SavedNews
-import com.example.smartnews.view.NewsViewHolder
+import com.example.smartnews.view.SavedNewsViewHolder
 
-class SavedNewsAdapter : RecyclerView.Adapter<NewsViewHolder>() {
+class SavedNewsAdapter(
+    private val userId: Int,
+    private val listener: OnNewsDeletedListener? = null
+) : RecyclerView.Adapter<SavedNewsViewHolder>() {
 
     private var newsList: List<SavedNews> = emptyList()
 
@@ -17,24 +19,18 @@ class SavedNewsAdapter : RecyclerView.Adapter<NewsViewHolder>() {
         notifyDataSetChanged()
     }
 
-    override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): NewsViewHolder {
-        val view = LayoutInflater.from(parent.context).inflate(R.layout.news_item, parent, false)
-        return NewsViewHolder(view)
+    override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): SavedNewsViewHolder {
+        val view = LayoutInflater.from(parent.context).inflate(R.layout.saved_news_item, parent, false)
+        return SavedNewsViewHolder(view)
     }
 
-    override fun onBindViewHolder(holder: NewsViewHolder, position: Int) {
-        val savedNews = newsList[position]
-        val news = News(
-            title = savedNews.title,
-            description = savedNews.description,
-            url = savedNews.url,
-            urlToImage = savedNews.urlToImage,
-            publishedAt = savedNews.publishedAt,
-            content = null,
-            category = savedNews.category
-        )
-        holder.bind(news, 0, savedNews.category)
+    override fun onBindViewHolder(holder: SavedNewsViewHolder, position: Int) {
+        holder.bind(userId, newsList[position], listener)
     }
 
     override fun getItemCount(): Int = newsList.size
+
+    interface OnNewsDeletedListener {
+        fun onNewsDeleted()
+    }
 }

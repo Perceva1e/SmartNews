@@ -1,0 +1,93 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:orientation="vertical"
+    android:padding="16dp"
+    android:background="#1A1A1A">
+
+    <ImageView
+        android:id="@+id/ivNewsImage"
+        android:layout_width="match_parent"
+        android:layout_height="150dp"
+        android:scaleType="centerCrop"
+        android:contentDescription="@string/news_image"
+        android:background="#333333" />
+
+    <TextView
+        android:id="@+id/tvTitle"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:textColor="#FFFFFF"
+        android:textSize="18sp"
+        android:textStyle="bold"
+        android:maxLines="2"
+        android:ellipsize="end"
+        android:layout_marginTop="8dp" />
+
+    <TextView
+        android:id="@+id/tvDescription"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:textColor="#9B59B6"
+        android:textSize="14sp"
+        android:maxLines="3"
+        android:ellipsize="end"
+        android:layout_marginTop="4dp" />
+
+    <TextView
+        android:id="@+id/tvDate"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:textColor="#6B2D88"
+        android:textSize="12sp"
+        android:layout_marginTop="4dp" />
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="horizontal"
+        android:layout_marginTop="2dp">
+
+        <TextView
+            android:id="@+id/tvSource"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:textColor="#9B59B6"
+            android:textSize="12sp"
+            android:clickable="true" />
+
+        <ImageView
+            android:id="@+id/ivShare"
+            android:layout_width="24dp"
+            android:layout_height="24dp"
+            android:src="@drawable/ic_share"
+            android:contentDescription="@string/share_news"
+            android:clickable="true"
+            android:focusable="true"
+            android:layout_marginEnd="8dp" />
+
+        <ImageView
+            android:id="@+id/ivDelete"
+            android:layout_width="24dp"
+            android:layout_height="24dp"
+            android:src="@drawable/ic_delete"
+            app:tint="#9B59B6"
+            android:contentDescription="@string/delete_news"
+            android:clickable="true"
+            android:focusable="true" />
+    </LinearLayout>
+
+    <TextView
+        android:id="@+id/tvMood"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:textColor="#6B2D88"
+        android:textSize="12sp"
+        android:layout_marginTop="4dp"
+        android:drawableStart="@drawable/ic_user"
+        android:drawablePadding="4dp" />
+
+</LinearLayout>

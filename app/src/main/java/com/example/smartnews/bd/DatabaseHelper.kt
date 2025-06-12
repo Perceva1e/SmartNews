@@ -240,6 +240,28 @@ class DatabaseHelper(context: Context) : SQLiteOpenHelper(context, DATABASE_NAME
         return id
     }
 
+    suspend fun deleteNews(userId: Int, newsId: Int): Int {
+        val db = this.writableDatabase
+        val rowsAffected = db.delete(
+            TABLE_SAVED_NEWS,
+            "$COLUMN_ID = ? AND $COLUMN_USER_ID = ?",
+            arrayOf(newsId.toString(), userId.toString())
+        )
+        db.close()
+
+        if (rowsAffected > 0) {
+            try {
+                firestore.collection(FIRESTORE_SAVED_NEWS_COLLECTION)
+                    .document("$userId-$newsId")
+                    .delete()
+                    .await()
+            } catch (e: Exception) {
+                e.printStackTrace()
+            }
+        }
+        return rowsAffected
+    }
+
     fun getSavedNewsByCategory(userId: Int, category: String): List<SavedNews> {
         val db = this.readableDatabase
         val newsList = mutableListOf<SavedNews>()
