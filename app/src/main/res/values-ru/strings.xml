@@ -80,4 +80,5 @@
     <string name="category_sports">Спорт</string>
     <string name="category_technology">Технологии</string>
     <string name="error_operation_failed">Операция не удалась. Попробуйте еще раз.</string>
+    <string name="error_user_exists">Пользователь с таким адресом электронной почты уже существует.</string>
 </resources>

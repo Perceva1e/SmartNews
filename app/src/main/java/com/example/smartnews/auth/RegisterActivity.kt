@@ -8,13 +8,15 @@ import android.widget.Button
 import android.widget.EditText
 import androidx.appcompat.app.AlertDialog
 import androidx.appcompat.app.AppCompatActivity
+import androidx.lifecycle.lifecycleScope
 import com.example.smartnews.R
 import com.example.smartnews.activity.MainActivity
 import com.example.smartnews.bd.DatabaseHelper
-import java.util.Locale
-import androidx.lifecycle.lifecycleScope
 import com.google.firebase.FirebaseApp
+import com.google.firebase.firestore.FirebaseFirestore
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.tasks.await
+import java.util.Locale
 
 class RegisterActivity : AppCompatActivity() {
     private lateinit var etName: EditText
@@ -23,6 +25,7 @@ class RegisterActivity : AppCompatActivity() {
     private lateinit var btnRegister: Button
     private lateinit var btnGoToLogin: Button
     private lateinit var localDb: DatabaseHelper
+    private val firestore: FirebaseFirestore = FirebaseFirestore.getInstance()
 
     override fun onCreate(savedInstanceState: Bundle?) {
         val sharedPref = getSharedPreferences("UserPrefs", MODE_PRIVATE)
@@ -52,6 +55,16 @@ class RegisterActivity : AppCompatActivity() {
 
             lifecycleScope.launch {
                 try {
+                    val document = firestore.collection("users").document(email).get().await()
+                    if (document.exists()) {
+                        showCustomDialog(
+                            getString(R.string.error_title),
+                            getString(R.string.error_user_exists),
+                            R.layout.custom_dialog_error
+                        )
+                        return@launch
+                    }
+
                     val result = localDb.addUser(name, email, password)
                     if (result != -1L) {
                         showCustomDialog(getString(R.string.success_title), getString(R.string.success_registration), R.layout.custom_dialog_success) {
