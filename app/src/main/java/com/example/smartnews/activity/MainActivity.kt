@@ -14,6 +14,7 @@ import androidx.recyclerview.widget.LinearLayoutManager
 import com.example.smartnews.R
 import com.example.smartnews.adapter.NewsAdapter
 import com.example.smartnews.adapter.NewsLoader
+import com.example.smartnews.adapter.SpacingItemDecoration
 import com.example.smartnews.bd.DatabaseHelper
 import com.google.android.gms.ads.AdListener
 import com.google.android.gms.ads.AdRequest
@@ -59,6 +60,8 @@ class MainActivity : AppCompatActivity() {
 
         recyclerView = findViewById(R.id.recyclerView)
         recyclerView.layoutManager = LinearLayoutManager(this)
+        val spacingInPixels = resources.getDimensionPixelSize(R.dimen.spacing)
+        recyclerView.addItemDecoration(SpacingItemDecoration(spacingInPixels))
         newsAdapter = NewsAdapter(userId = userId)
         recyclerView.adapter = newsAdapter
 
@@ -139,7 +142,6 @@ class MainActivity : AppCompatActivity() {
     private fun setLocale(language: String) {
         val locale = Locale(language)
         Locale.setDefault(locale)
-
         val config = Configuration()
         config.setLocale(locale)
         baseContext.resources.updateConfiguration(config, baseContext.resources.displayMetrics)

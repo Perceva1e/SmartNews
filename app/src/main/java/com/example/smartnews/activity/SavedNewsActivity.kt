@@ -14,7 +14,15 @@ import java.util.Locale
 class SavedNewsActivity : AppCompatActivity() {
     private var userId: Int = -1
     private val sharedPref by lazy { getSharedPreferences("UserPrefs", MODE_PRIVATE) }
-    private val categories = listOf("business", "entertainment", "general", "health", "science", "sports", "technology")
+    private val categoriesMap = mapOf(
+        "business" to R.string.category_business,
+        "entertainment" to R.string.category_entertainment,
+        "general" to R.string.category_general,
+        "health" to R.string.category_health,
+        "science" to R.string.category_science,
+        "sports" to R.string.category_sports,
+        "technology" to R.string.category_technology
+    )
 
     override fun onCreate(savedInstanceState: Bundle?) {
         val savedLang = sharedPref.getString("app_language", "ru")
@@ -33,13 +41,13 @@ class SavedNewsActivity : AppCompatActivity() {
 
         val categoryContainer = findViewById<LinearLayout>(R.id.categoryContainer)
 
-        for (category in categories) {
+        for ((categoryKey, categoryResId) in categoriesMap) {
             val button = LayoutInflater.from(this).inflate(R.layout.category_item, categoryContainer, false) as Button
-            button.text = category.replaceFirstChar { it.uppercase() }
+            button.text = getString(categoryResId).replaceFirstChar { it.uppercase() }
             button.setOnClickListener {
                 val intent = Intent(this, CategorySavedNewsActivity::class.java).apply {
                     putExtra("USER_ID", userId)
-                    putExtra("CATEGORY", category)
+                    putExtra("CATEGORY", categoryKey)
                 }
                 startActivity(intent)
             }

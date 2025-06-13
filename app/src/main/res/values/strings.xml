@@ -72,13 +72,13 @@
         <item>technology</item>
     </string-array>
     <string name="error_no_categories">News categories not found</string>
-    <string name="category_business">Business</string>
-    <string name="category_entertainment">Entertainment</string>
-    <string name="category_general">General</string>
-    <string name="category_health">Health</string>
-    <string name="category_science">Science</string>
-    <string name="category_sports">Sports</string>
-    <string name="category_technology">Technology</string>
+    <string name="category_business">business</string>
+    <string name="category_entertainment">entertainment</string>
+    <string name="category_general">general</string>
+    <string name="category_health">health</string>
+    <string name="category_science">science</string>
+    <string name="category_sports">sports</string>
+    <string name="category_technology">technology</string>
     <string name="error_operation_failed">Operation failed. Please try again.</string>
     <string name="error_user_exists">A user with this email already exists.</string>
     <string name="share_news">Share news article</string>

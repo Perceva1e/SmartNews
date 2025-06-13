@@ -1,6 +1,7 @@
 package com.example.smartnews.adapter
 
 import android.os.Bundle
+import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
@@ -44,6 +45,9 @@ class SavedNewsFragment : Fragment() {
         val recyclerView = view.findViewById<RecyclerView>(R.id.recyclerView)
         recyclerView.layoutManager = LinearLayoutManager(requireContext())
 
+        val spacingInPixels = resources.getDimensionPixelSize(R.dimen.spacing)
+        recyclerView.addItemDecoration(SpacingItemDecoration(spacingInPixels))
+
         adapter = SavedNewsAdapter(userId, object : SavedNewsAdapter.OnNewsDeletedListener {
             override fun onNewsDeleted() {
                 val dbHelper = DatabaseHelper(requireContext())
@@ -55,6 +59,9 @@ class SavedNewsFragment : Fragment() {
 
         val dbHelper = DatabaseHelper(requireContext())
         val newsList = dbHelper.getSavedNewsByCategory(userId, category)
+        if (newsList.isEmpty()) {
+            Log.d("SavedNewsFragment", "No news found for userId: $userId, category: $category")
+        }
         adapter.setSavedNews(newsList)
     }
 }

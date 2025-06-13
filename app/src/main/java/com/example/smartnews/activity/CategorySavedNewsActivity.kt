@@ -13,6 +13,15 @@ import androidx.core.graphics.drawable.DrawableCompat
 
 class CategorySavedNewsActivity : AppCompatActivity() {
     private val sharedPref by lazy { getSharedPreferences("UserPrefs", MODE_PRIVATE) }
+    private val categoriesMap = mapOf(
+        "business" to R.string.category_business,
+        "entertainment" to R.string.category_entertainment,
+        "general" to R.string.category_general,
+        "health" to R.string.category_health,
+        "science" to R.string.category_science,
+        "sports" to R.string.category_sports,
+        "technology" to R.string.category_technology
+    )
 
     override fun onCreate(savedInstanceState: Bundle?) {
         val savedLang = sharedPref.getString("app_language", "ru")
@@ -27,7 +36,10 @@ class CategorySavedNewsActivity : AppCompatActivity() {
 
         supportActionBar?.apply {
             setDisplayHomeAsUpEnabled(true)
-            title = intent.getStringExtra("CATEGORY")?.replaceFirstChar { it.uppercase() } ?: "Saved News"
+            val category = intent.getStringExtra("CATEGORY")
+            title = category?.let {
+                categoriesMap[it]?.let { resId -> getString(resId).replaceFirstChar { it.uppercase() } } ?: it.replaceFirstChar { it.uppercase() }
+            } ?: getString(R.string.save_news)
         }
 
         val arrowDrawable = ContextCompat.getDrawable(this, R.drawable.ic_arrow_back)
