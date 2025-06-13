@@ -4,19 +4,17 @@ import android.content.Intent
 import android.content.res.Configuration
 import android.os.Bundle
 import androidx.appcompat.app.AppCompatActivity
-import androidx.viewpager2.widget.ViewPager2
 import com.example.smartnews.R
-import com.example.smartnews.adapter.SavedNewsPagerAdapter
-import com.example.smartnews.bd.DatabaseHelper
 import com.google.android.material.bottomnavigation.BottomNavigationView
-import com.google.android.material.tabs.TabLayout
-import com.google.android.material.tabs.TabLayoutMediator
+import android.view.LayoutInflater
+import android.widget.Button
+import android.widget.LinearLayout
 import java.util.Locale
 
 class SavedNewsActivity : AppCompatActivity() {
     private var userId: Int = -1
-    private lateinit var dbHelper: DatabaseHelper
     private val sharedPref by lazy { getSharedPreferences("UserPrefs", MODE_PRIVATE) }
+    private val categories = listOf("business", "entertainment", "general", "health", "science", "sports", "technology")
 
     override fun onCreate(savedInstanceState: Bundle?) {
         val savedLang = sharedPref.getString("app_language", "ru")
@@ -25,24 +23,28 @@ class SavedNewsActivity : AppCompatActivity() {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_saved_news)
 
+        supportActionBar?.title = getString(R.string.save_news)
+
         userId = intent.getIntExtra("USER_ID", -1)
         if (userId == -1) {
             finish()
             return
         }
 
-        dbHelper = DatabaseHelper(this)
+        val categoryContainer = findViewById<LinearLayout>(R.id.categoryContainer)
 
-        val tabLayout = findViewById<TabLayout>(R.id.tabLayout)
-        val viewPager = findViewById<ViewPager2>(R.id.viewPager)
-
-        val categories = dbHelper.getAllCategories(userId).ifEmpty { listOf("general") }
-        val adapter = SavedNewsPagerAdapter(this, userId, categories)
-        viewPager.adapter = adapter
-
-        TabLayoutMediator(tabLayout, viewPager) { tab, position ->
-            tab.text = categories[position].replaceFirstChar { it.uppercase() }
-        }.attach()
+        for (category in categories) {
+            val button = LayoutInflater.from(this).inflate(R.layout.category_item, categoryContainer, false) as Button
+            button.text = category.replaceFirstChar { it.uppercase() }
+            button.setOnClickListener {
+                val intent = Intent(this, CategorySavedNewsActivity::class.java).apply {
+                    putExtra("USER_ID", userId)
+                    putExtra("CATEGORY", category)
+                }
+                startActivity(intent)
+            }
+            categoryContainer.addView(button)
+        }
 
         setupBottomNavigation()
     }

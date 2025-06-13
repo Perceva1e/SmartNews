@@ -8,8 +8,7 @@ import com.example.smartnews.api.model.News
 import com.example.smartnews.view.NewsViewHolder
 
 class NewsAdapter(
-    private val userId: Int = -1,
-    private val category: String = "general"
+    private val userId: Int = -1
 ) : RecyclerView.Adapter<NewsViewHolder>() {
 
     private var newsList: List<News> = emptyList()
@@ -25,7 +24,7 @@ class NewsAdapter(
     }
 
     override fun onBindViewHolder(holder: NewsViewHolder, position: Int) {
-        holder.bind(newsList[position], userId, category)
+        holder.bind(newsList[position], userId)
     }
 
     override fun getItemCount(): Int = newsList.size

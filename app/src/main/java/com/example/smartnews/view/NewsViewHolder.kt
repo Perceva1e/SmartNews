@@ -27,7 +27,7 @@ class NewsViewHolder(itemView: android.view.View) : RecyclerView.ViewHolder(item
     private val ivShare: ImageView = itemView.findViewById(R.id.ivShare)
     private val ivSave: ImageView = itemView.findViewById(R.id.ivSave)
 
-    fun bind(news: News, userId: Int, category: String) {
+    fun bind(news: News, userId: Int) {
         tvTitle.text = news.title ?: "No title"
         tvDescription.text = news.description ?: "No description"
         tvDate.text = news.publishedAt?.substring(0, 10) ?: "No date"
@@ -68,7 +68,7 @@ class NewsViewHolder(itemView: android.view.View) : RecyclerView.ViewHolder(item
                 url = news.url,
                 urlToImage = news.urlToImage,
                 publishedAt = news.publishedAt,
-                category = category
+                category = news.category ?: "general"
             )
             CoroutineScope(Dispatchers.IO).launch {
                 val dbHelper = DatabaseHelper(itemView.context)
