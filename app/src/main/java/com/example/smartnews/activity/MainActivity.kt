@@ -57,16 +57,23 @@ class MainActivity : AppCompatActivity() {
         Log.d("MainActivity", "User ID: $userId received, proceeding")
 
         dbHelper = DatabaseHelper(this)
+        val user = dbHelper.getUserById(userId)
+        val email = user?.email ?: ""
+        if (email.isEmpty()) {
+            Log.e("MainActivity", "User email not found for userId: $userId, finishing activity")
+            finish()
+            return
+        }
 
         recyclerView = findViewById(R.id.recyclerView)
         recyclerView.layoutManager = LinearLayoutManager(this)
         val spacingInPixels = resources.getDimensionPixelSize(R.dimen.spacing)
         recyclerView.addItemDecoration(SpacingItemDecoration(spacingInPixels))
-        newsAdapter = NewsAdapter(userId = userId)
+        newsAdapter = NewsAdapter(email = email)
         recyclerView.adapter = newsAdapter
 
         setupBottomNavigation()
-        loadNews()
+        loadNews(email)
 
         adContainer = findViewById(R.id.adContainer)
         adView = findViewById(R.id.adView)
@@ -85,7 +92,7 @@ class MainActivity : AppCompatActivity() {
         super.onResume()
         adView.resume()
         findViewById<BottomNavigationView>(R.id.bottomNavigation)?.selectedItemId = R.id.navigation_home
-        loadNews()
+        loadNews(dbHelper.getUserById(userId)?.email ?: "")
         updateAdVisibility()
     }
 
@@ -100,7 +107,7 @@ class MainActivity : AppCompatActivity() {
         bottomNavigation.setOnNavigationItemSelectedListener { item ->
             when (item.itemId) {
                 R.id.navigation_home -> {
-                    loadNews()
+                    loadNews(dbHelper.getUserById(userId)?.email ?: "")
                     true
                 }
                 R.id.navigation_saved -> {
@@ -126,8 +133,8 @@ class MainActivity : AppCompatActivity() {
         bottomNavigation.selectedItemId = R.id.navigation_home
     }
 
-    private fun loadNews() {
-        NewsLoader.loadNews(this, newsAdapter, userId)
+    private fun loadNews(email: String) {
+        NewsLoader.loadNews(this, newsAdapter, email)
     }
 
     private fun applyTransition() {

@@ -4,18 +4,21 @@ import android.content.Context
 import android.net.ConnectivityManager
 import android.net.NetworkCapabilities
 import android.util.Log
+import android.view.LayoutInflater
 import androidx.appcompat.app.AlertDialog
 import com.example.smartnews.R
 import com.example.smartnews.api.NewsApi
-import com.example.smartnews.bd.DatabaseHelper
-import kotlinx.coroutines.*
-import android.view.LayoutInflater
 import com.example.smartnews.api.model.News
+import com.example.smartnews.bd.DatabaseHelper
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 
 object NewsLoader {
     private const val TAG = "NewsLoader"
 
-    fun loadNews(context: Context, adapter: NewsAdapter, userId: Int) {
+    fun loadNews(context: Context, adapter: NewsAdapter, email: String) {
         if (!isInternetAvailable(context)) {
             showCustomDialog(context, getString(context, R.string.error_title), getString(context, R.string.error_no_internet_desc))
             return
@@ -24,7 +27,7 @@ object NewsLoader {
         CoroutineScope(Dispatchers.IO).launch {
             try {
                 val dbHelper = DatabaseHelper(context)
-                val user = dbHelper.getUser()
+                val user = dbHelper.getUserByEmail(email)
                 val categories = user?.newsCategories?.split(",")?.filter { it.isNotBlank() }?.takeIf { it.isNotEmpty() }
                     ?: listOf("general")
 

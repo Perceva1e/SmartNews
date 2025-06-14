@@ -42,25 +42,27 @@ class SavedNewsFragment : Fragment() {
         val userId = arguments?.getInt(USER_ID) ?: 0
         val category = arguments?.getString(CATEGORY) ?: "general"
 
+        val dbHelper = DatabaseHelper(requireContext())
+        val user = dbHelper.getUserById(userId)
+        val email = user?.email ?: ""
+
         val recyclerView = view.findViewById<RecyclerView>(R.id.recyclerView)
         recyclerView.layoutManager = LinearLayoutManager(requireContext())
 
         val spacingInPixels = resources.getDimensionPixelSize(R.dimen.spacing)
         recyclerView.addItemDecoration(SpacingItemDecoration(spacingInPixels))
 
-        adapter = SavedNewsAdapter(userId, object : SavedNewsAdapter.OnNewsDeletedListener {
+        val newsList = dbHelper.getSavedNewsByCategory(email, category)
+        adapter = SavedNewsAdapter(newsList, email, object : SavedNewsAdapter.OnNewsDeletedListener {
             override fun onNewsDeleted() {
-                val dbHelper = DatabaseHelper(requireContext())
-                val newsList = dbHelper.getSavedNewsByCategory(userId, category)
-                adapter.setSavedNews(newsList)
+                val updatedNewsList = dbHelper.getSavedNewsByCategory(email, category)
+                adapter.setSavedNews(updatedNewsList)
             }
         })
         recyclerView.adapter = adapter
 
-        val dbHelper = DatabaseHelper(requireContext())
-        val newsList = dbHelper.getSavedNewsByCategory(userId, category)
         if (newsList.isEmpty()) {
-            Log.d("SavedNewsFragment", "No news found for userId: $userId, category: $category")
+            Log.d("SavedNewsFragment", "No news found for email: $email, category: $category")
         }
         adapter.setSavedNews(newsList)
     }

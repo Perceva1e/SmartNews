@@ -28,7 +28,7 @@ class SavedNewsViewHolder(itemView: View) : RecyclerView.ViewHolder(itemView) {
     private val ivShare: ImageView = itemView.findViewById(R.id.ivShare)
     private val ivDelete: ImageView = itemView.findViewById(R.id.ivDelete)
 
-    fun bind(userId: Int, savedNews: SavedNews, listener: SavedNewsAdapter.OnNewsDeletedListener?) {
+    fun bind(email: String, savedNews: SavedNews, listener: SavedNewsAdapter.OnNewsDeletedListener?) {
         tvTitle.text = savedNews.title ?: "No title"
         tvDescription.text = savedNews.description ?: "No description"
         tvDate.text = savedNews.publishedAt?.substring(0, 10) ?: "No date"
@@ -65,7 +65,7 @@ class SavedNewsViewHolder(itemView: View) : RecyclerView.ViewHolder(itemView) {
         ivDelete.setOnClickListener {
             CoroutineScope(Dispatchers.IO).launch {
                 val dbHelper = DatabaseHelper(itemView.context)
-                val result = dbHelper.deleteNews(userId, savedNews.id)
+                val result = dbHelper.deleteNews(email, savedNews.id)
                 if (result > 0) {
                     withContext(Dispatchers.Main) {
                         showCustomDialog(

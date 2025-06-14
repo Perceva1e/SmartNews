@@ -8,5 +8,6 @@ buildscript {
         classpath(libs.gradle)
         classpath(libs.kotlin.gradle.plugin)
         classpath ("com.google.gms:google-services:4.4.2")
+        classpath("org.mindrot:jbcrypt:0.4")
     }
 }

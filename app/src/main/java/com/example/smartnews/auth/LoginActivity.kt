@@ -12,10 +12,12 @@ import androidx.lifecycle.lifecycleScope
 import com.example.smartnews.R
 import com.example.smartnews.activity.MainActivity
 import com.example.smartnews.bd.DatabaseHelper
+import com.example.smartnews.bd.SavedNews
 import com.google.firebase.FirebaseApp
 import com.google.firebase.firestore.FirebaseFirestore
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.tasks.await
+import org.mindrot.jbcrypt.BCrypt
 import java.util.Locale
 
 class LoginActivity : AppCompatActivity() {
@@ -54,6 +56,7 @@ class LoginActivity : AppCompatActivity() {
                 try {
                     val user = localDb.checkUser(email, password)
                     if (user != null) {
+                        syncSavedNewsFromFirestore(email)
                         showCustomDialog(getString(R.string.success_title), getString(R.string.success_login), R.layout.custom_dialog_success) {
                             startActivity(Intent(this@LoginActivity, MainActivity::class.java).apply {
                                 putExtra("USER_ID", user.id)
@@ -65,12 +68,13 @@ class LoginActivity : AppCompatActivity() {
                         if (document.exists()) {
                             val firestoreUser = document.data
                             val firestorePassword = firestoreUser?.get("password") as? String
-                            if (firestorePassword == password) {
+                            if (firestorePassword != null && BCrypt.checkpw(password, firestorePassword)) {
                                 val name = firestoreUser["name"] as? String ?: ""
                                 val newsCategories = firestoreUser["news_categories"] as? String
                                 val isVip = firestoreUser["is_vip"] as? Boolean ?: false
-                                val result = localDb.addUser(name, email, password, newsCategories, isVip)
+                                val result = localDb.addUser(name, email, firestorePassword, newsCategories, isVip)
                                 if (result != -1L) {
+                                    syncSavedNewsFromFirestore(email)
                                     showCustomDialog(getString(R.string.success_title), getString(R.string.success_login), R.layout.custom_dialog_success) {
                                         startActivity(Intent(this@LoginActivity, MainActivity::class.java).apply {
                                             putExtra("USER_ID", result.toInt())
@@ -95,6 +99,33 @@ class LoginActivity : AppCompatActivity() {
 
         btnGoToRegister.setOnClickListener {
             startActivity(Intent(this, RegisterActivity::class.java))
+        }
+    }
+
+    private suspend fun syncSavedNewsFromFirestore(email: String) {
+        try {
+            val querySnapshot = firestore.collection("saved_news")
+                .whereEqualTo("email", email)
+                .get()
+                .await()
+            for (document in querySnapshot.documents) {
+                val news = SavedNews(
+                    id = document.id.split("-").last().toInt(),
+                    title = document.getString("title"),
+                    description = document.getString("description"),
+                    url = document.getString("url"),
+                    urlToImage = document.getString("url_to_image"),
+                    publishedAt = document.getString("published_at"),
+                    category = document.getString("category") ?: ""
+                )
+                val existingNews = localDb.getSavedNewsByCategory(email, news.category)
+                    .find { it.id == news.id }
+                if (existingNews == null) {
+                    localDb.saveNews(email, news)
+                }
+            }
+        } catch (e: Exception) {
+            e.printStackTrace()
         }
     }
 

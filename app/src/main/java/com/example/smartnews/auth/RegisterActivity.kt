@@ -16,6 +16,7 @@ import com.google.firebase.FirebaseApp
 import com.google.firebase.firestore.FirebaseFirestore
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.tasks.await
+import org.mindrot.jbcrypt.BCrypt
 import java.util.Locale
 
 class RegisterActivity : AppCompatActivity() {
@@ -53,6 +54,8 @@ class RegisterActivity : AppCompatActivity() {
                 return@setOnClickListener
             }
 
+            val hashedPassword = BCrypt.hashpw(password, BCrypt.gensalt())
+
             lifecycleScope.launch {
                 try {
                     val document = firestore.collection("users").document(email).get().await()
@@ -65,7 +68,7 @@ class RegisterActivity : AppCompatActivity() {
                         return@launch
                     }
 
-                    val result = localDb.addUser(name, email, password)
+                    val result = localDb.addUser(name, email, hashedPassword)
                     if (result != -1L) {
                         showCustomDialog(getString(R.string.success_title), getString(R.string.success_registration), R.layout.custom_dialog_success) {
                             startActivity(Intent(this@RegisterActivity, MainActivity::class.java).apply {

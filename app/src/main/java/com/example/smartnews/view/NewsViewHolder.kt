@@ -27,7 +27,7 @@ class NewsViewHolder(itemView: android.view.View) : RecyclerView.ViewHolder(item
     private val ivShare: ImageView = itemView.findViewById(R.id.ivShare)
     private val ivSave: ImageView = itemView.findViewById(R.id.ivSave)
 
-    fun bind(news: News, userId: Int) {
+    fun bind(news: News, email: String) {
         tvTitle.text = news.title ?: "No title"
         tvDescription.text = news.description ?: "No description"
         tvDate.text = news.publishedAt?.substring(0, 10) ?: "No date"
@@ -72,7 +72,7 @@ class NewsViewHolder(itemView: android.view.View) : RecyclerView.ViewHolder(item
             )
             CoroutineScope(Dispatchers.IO).launch {
                 val dbHelper = DatabaseHelper(itemView.context)
-                val result = dbHelper.saveNews(userId, savedNews)
+                val result = dbHelper.saveNews(email, savedNews)
                 if (result != -1L) {
                     withContext(Dispatchers.Main) {
                         showCustomDialog(

@@ -64,4 +64,5 @@ dependencies {
     implementation ("com.google.android.gms:play-services-ads:21.5.0")
     implementation ("com.google.firebase:firebase-firestore-ktx:24.10.0")
     implementation ("org.jetbrains.kotlinx:kotlinx-coroutines-play-services:1.8.0")
+    implementation ("org.mindrot:jbcrypt:0.4")
 }
