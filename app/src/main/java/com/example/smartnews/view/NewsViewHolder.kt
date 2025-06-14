@@ -6,6 +6,7 @@ import android.net.Uri
 import android.view.LayoutInflater
 import android.widget.ImageView
 import android.widget.TextView
+import androidx.core.content.res.ResourcesCompat
 import androidx.recyclerview.widget.RecyclerView
 import com.bumptech.glide.Glide
 import com.example.smartnews.R
@@ -39,7 +40,19 @@ class NewsViewHolder(itemView: android.view.View) : RecyclerView.ViewHolder(item
                 itemView.context.startActivity(intent)
             }
         }
-        tvMood.text = "Mood: ${news.analyzeMood()}"
+
+        val mood = news.analyzeMood(itemView.context)
+        tvMood.text = "${itemView.context.getString(R.string.mood)} $mood"
+        val (moodDrawableRes, moodContentDescRes) = when (mood) {
+            itemView.context.getString(R.string.mood_happy) -> R.drawable.happy to R.string.mood_happy_desc
+            itemView.context.getString(R.string.mood_sad) -> R.drawable.sad to R.string.mood_sad_desc
+            else -> R.drawable.neutral to R.string.mood_neutral_desc
+        }
+        val drawable = ResourcesCompat.getDrawable(itemView.context.resources, moodDrawableRes, null)
+        drawable?.setBounds(0, 0, 56, 56)
+        tvMood.setCompoundDrawables(drawable, null, null, null)
+        tvMood.contentDescription = itemView.context.getString(moodContentDescRes)
+
         if (news.urlToImage != null) {
             Glide.with(itemView.context)
                 .load(news.urlToImage)

@@ -87,7 +87,7 @@
         android:textColor="#6B2D88"
         android:textSize="12sp"
         android:layout_marginTop="4dp"
-        android:drawableStart="@drawable/ic_user"
-        android:drawablePadding="4dp" />
+        android:drawablePadding="4dp"
+        android:maxWidth="200dp" />
 
 </LinearLayout>

@@ -88,4 +88,11 @@
     <string name="delete_news">Delete news article</string>
     <string name="news_deleted_success">News deleted successfully</string>
     <string name="news_delete_failed">Failed to delete news</string>
+    <string name="mood_happy">happy</string>
+    <string name="mood_sad">sad</string>
+    <string name="mood_neutral">neutral</string>
+    <string name="mood">Mood:</string>
+    <string name="mood_happy_desc">Happy mood icon</string>
+    <string name="mood_sad_desc">Sad mood icon</string>
+    <string name="mood_neutral_desc">Neutral mood icon</string>
 </resources>

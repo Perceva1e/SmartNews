@@ -88,4 +88,11 @@
     <string name="delete_news">Удалить новостную статью</string>
     <string name="news_deleted_success">Новости успешно удалены</string>
     <string name="news_delete_failed">Не удалось удалить новость</string>
+    <string name="mood_happy">счастливое</string>
+    <string name="mood_sad">грустное</string>
+    <string name="mood_neutral">нетральное</string>
+    <string name="mood">Настроение:</string>
+    <string name="mood_happy_desc">Иконка счастливого настроения</string>
+    <string name="mood_sad_desc">Иконка грустного настроения</string>
+    <string name="mood_neutral_desc">Иконка нейтрального настроения</string>
 </resources>
