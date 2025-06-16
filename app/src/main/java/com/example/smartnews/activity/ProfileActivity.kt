@@ -7,6 +7,7 @@ import android.content.res.Configuration
 import android.os.Bundle
 import android.os.Handler
 import android.os.Looper
+import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
 import android.widget.*
@@ -21,6 +22,7 @@ import com.google.android.gms.ads.MobileAds
 import com.google.android.material.bottomnavigation.BottomNavigationView
 import java.util.Locale
 import androidx.lifecycle.lifecycleScope
+import com.example.smartnews.auth.RegisterActivity
 import kotlinx.coroutines.launch
 
 class ProfileActivity : AppCompatActivity() {
@@ -46,6 +48,7 @@ class ProfileActivity : AppCompatActivity() {
         val config = Configuration(newBase.resources.configuration)
         config.setLocale(locale)
         super.attachBaseContext(newBase.createConfigurationContext(config))
+        Log.d("ProfileActivity", "attachBaseContext: Language set to $language")
     }
 
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -53,92 +56,31 @@ class ProfileActivity : AppCompatActivity() {
         setContentView(R.layout.activity_profile)
 
         userId = intent.getIntExtra("USER_ID", -1)
-        if (userId == -1) finish()
+        if (userId == -1) {
+            Log.e("ProfileActivity", "Invalid USER_ID, finishing activity")
+            finish()
+            return
+        }
 
         dbHelper = DatabaseHelper(this)
 
-        val currentLang = sharedPref.getString("app_language", "ru")
-        val currentCurrency = sharedPref.getString("app_currency", "RUB")
-
-        val etName = findViewById<EditText>(R.id.etName)
-        val etEmail = findViewById<EditText>(R.id.etEmail)
-        val spLanguage = findViewById<Spinner>(R.id.spLanguage)
-        val spCurrency = findViewById<Spinner>(R.id.spCurrency)
-        val ivLanguageIcon = findViewById<ImageView>(R.id.ivLanguageIcon)
-        val ivCurrencyIcon = findViewById<ImageView>(R.id.ivCurrencyIcon)
-        val btnSave = findViewById<Button>(R.id.btnSave)
+        val tvName = findViewById<TextView>(R.id.tvName)
+        val tvEmail = findViewById<TextView>(R.id.tvEmail)
+        val tvLanguage = findViewById<TextView>(R.id.tvLanguage)
+        val tvCurrency = findViewById<TextView>(R.id.tvCurrency)
+        val btnEditName = findViewById<ImageButton>(R.id.btnEditName)
+        val btnEditEmail = findViewById<ImageButton>(R.id.btnEditEmail)
+        val btnEditLanguage = findViewById<ImageButton>(R.id.btnEditLanguage)
+        val btnEditCurrency = findViewById<ImageButton>(R.id.btnEditCurrency)
         val btnDeleteAccount = findViewById<Button>(R.id.btnDeleteAccount)
         val btnBuyVip = findViewById<Button>(R.id.btnBuyVip)
-        val btnNewsFilter = findViewById<Button>(R.id.btnNewsFilter)
 
-        val user = dbHelper.getUser()
-        if (user != null) {
-            etName.setText(user.name)
-            etEmail.setText(user.email)
-        }
+        refreshUI()
 
-        val languages = resources.getStringArray(R.array.languages)
-        val currencies = resources.getStringArray(R.array.currencies)
-
-        val languageAdapter = ArrayAdapter(this, R.layout.spinner_item, languages)
-        languageAdapter.setDropDownViewResource(R.layout.spinner_dropdown_item)
-        spLanguage.adapter = languageAdapter
-
-        val currencyAdapter = ArrayAdapter(this, R.layout.spinner_item, currencies)
-        currencyAdapter.setDropDownViewResource(R.layout.spinner_dropdown_item)
-        spCurrency.adapter = currencyAdapter
-
-        val languageIndex = languages.indexOfFirst { it.contains(currentLang ?: "ru", ignoreCase = true) }
-        spLanguage.setSelection(if (languageIndex != -1) languageIndex else 0)
-
-        val currencyIndex = currencies.indexOfFirst { it.startsWith(currentCurrency ?: "RUB") }
-        spCurrency.setSelection(if (currencyIndex != -1) currencyIndex else 0)
-
-        updateLanguageIcon(spLanguage.selectedItemPosition, ivLanguageIcon)
-        updateCurrencyIcon(spCurrency.selectedItemPosition, ivCurrencyIcon)
-
-        spLanguage.onItemSelectedListener = object : AdapterView.OnItemSelectedListener {
-            override fun onItemSelected(parent: AdapterView<*>?, view: View?, position: Int, id: Long) {
-                updateLanguageIcon(position, ivLanguageIcon)
-            }
-
-            override fun onNothingSelected(parent: AdapterView<*>?) {}
-        }
-
-        spCurrency.onItemSelectedListener = object : AdapterView.OnItemSelectedListener {
-            override fun onItemSelected(parent: AdapterView<*>?, view: View?, position: Int, id: Long) {
-                updateCurrencyIcon(position, ivCurrencyIcon)
-            }
-
-            override fun onNothingSelected(parent: AdapterView<*>?) {}
-        }
-
-        btnSave.setOnClickListener {
-            val name = etName.text.toString().trim()
-            val email = etEmail.text.toString().trim()
-            val language = if (spLanguage.selectedItemPosition == 0) "ru" else "en"
-            val currency = currencies[spCurrency.selectedItemPosition].substringBefore(" ")
-
-            if (name.isNotEmpty() && email.isNotEmpty()) {
-                lifecycleScope.launch {
-                    val existingUser = dbHelper.getUser()
-                    if (existingUser != null) {
-                        dbHelper.updateUser(existingUser.id, name, email, existingUser.password, existingUser.newsCategories, existingUser.isVip)
-                    } else {
-                        dbHelper.addUser(name, email, "")
-                    }
-                    with(sharedPref.edit()) {
-                        putString("app_language", language)
-                        putString("app_currency", currency)
-                        apply()
-                    }
-                    setLocale(language)
-                    showCustomDialog(getString(R.string.success_title), getString(R.string.saved), R.layout.custom_dialog_success)
-                }
-            } else {
-                showCustomDialog(getString(R.string.error_title), getString(R.string.error_empty_fields), R.layout.custom_dialog_error)
-            }
-        }
+        btnEditName.setOnClickListener { startEditActivity("name") }
+        btnEditEmail.setOnClickListener { startEditActivity("email") }
+        btnEditLanguage.setOnClickListener { startEditActivity("language") }
+        btnEditCurrency.setOnClickListener { startEditActivity("currency") }
 
         btnDeleteAccount.setOnClickListener {
             val existingUser = dbHelper.getUser()
@@ -154,7 +96,11 @@ class ProfileActivity : AppCompatActivity() {
                         getString(R.string.success_deleted_desc),
                         R.layout.custom_dialog_success
                     ) {
-                        finish()
+                        val intent = Intent(this@ProfileActivity, RegisterActivity::class.java).apply {
+                            addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP or Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TASK)
+                        }
+                        startActivity(intent)
+                        finishAffinity()
                     }
                 }
             } else {
@@ -169,12 +115,6 @@ class ProfileActivity : AppCompatActivity() {
                     putExtra("USER_ID", userId)
                 })
             }
-        }
-
-        btnNewsFilter.setOnClickListener {
-            startActivity(Intent(this, NewsFilterActivity::class.java).apply {
-                putExtra("USER_ID", userId)
-            })
         }
 
         updateVipButtonState(btnBuyVip)
@@ -218,6 +158,7 @@ class ProfileActivity : AppCompatActivity() {
         updateAdVisibility()
         updateVipButtonState(findViewById(R.id.btnBuyVip))
         adView.resume()
+        refreshUI()
     }
 
     override fun onPause() {
@@ -231,18 +172,11 @@ class ProfileActivity : AppCompatActivity() {
         super.onDestroy()
     }
 
-    private fun setLocale(language: String) {
-        val locale = Locale(language)
-        Locale.setDefault(locale)
-        val config = Configuration()
-        config.setLocale(locale)
-        baseContext.resources.updateConfiguration(config, baseContext.resources.displayMetrics)
-        val intent = Intent(this, MainActivity::class.java).apply {
+    private fun startEditActivity(field: String) {
+        startActivity(Intent(this, EditProfileActivity::class.java).apply {
             putExtra("USER_ID", userId)
-            addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP or Intent.FLAG_ACTIVITY_NEW_TASK)
-        }
-        startActivity(intent)
-        finish()
+            putExtra("EDIT_FIELD", field)
+        })
     }
 
     private fun applyTransition() {
@@ -268,25 +202,6 @@ class ProfileActivity : AppCompatActivity() {
             dialog.dismiss()
         }
         dialog.show()
-    }
-
-    private fun updateLanguageIcon(position: Int, imageView: ImageView) {
-        val drawableId = when (position) {
-            0 -> R.drawable.ic_flag_ru
-            1 -> R.drawable.ic_flag_en
-            else -> R.drawable.ic_flag_ru
-        }
-        imageView.setImageResource(drawableId)
-    }
-
-    private fun updateCurrencyIcon(position: Int, imageView: ImageView) {
-        val currency = resources.getStringArray(R.array.currencies)[position].substringBefore(" ")
-        val drawableId = when (currency) {
-            "RUB" -> R.drawable.ic_rub
-            "USD" -> R.drawable.ic_usd
-            else -> R.drawable.ic_rub
-        }
-        imageView.setImageResource(drawableId)
     }
 
     private fun updateAdVisibility() {
@@ -328,5 +243,24 @@ class ProfileActivity : AppCompatActivity() {
                 text = getString(R.string.buy_vip)
             }
         }
+    }
+
+    private fun refreshUI() {
+        val user = dbHelper.getUser()
+        val tvName = findViewById<TextView>(R.id.tvName)
+        val tvEmail = findViewById<TextView>(R.id.tvEmail)
+        val tvLanguage = findViewById<TextView>(R.id.tvLanguage)
+        val tvCurrency = findViewById<TextView>(R.id.tvCurrency)
+        if (user != null) {
+            tvName.text = user.name ?: getString(R.string.not_set)
+            tvEmail.text = user.email ?: getString(R.string.not_set)
+            tvLanguage.text = when (sharedPref.getString("app_language", "ru")) {
+                "ru" -> getString(R.string.language_russian)
+                "en" -> getString(R.string.language_english)
+                else -> getString(R.string.not_set)
+            }
+            tvCurrency.text = sharedPref.getString("app_currency", "RUB") ?: getString(R.string.not_set)
+        }
+        Log.d("ProfileActivity", "refreshUI: Updated with language ${sharedPref.getString("app_language", "ru")}")
     }
 }

@@ -16,7 +16,6 @@
     <string name="profile_title">Settings</string>
     <string name="name_hint">Input name</string>
     <string name="email_hint">Input email</string>
-    <string name="language_label">language:</string>
     <string-array name="languages">
         <item>Русский</item>
         <item>English</item>
@@ -63,9 +62,9 @@
     <string name="filter_saved">Filter saved</string>
     <string name="filter_cleared">Filter cleaned</string>
     <string-array name="filter_categories">
+        <item>general</item>
         <item>business</item>
         <item>entertainment</item>
-        <item>general</item>
         <item>health</item>
         <item>science</item>
         <item>sports</item>
@@ -95,4 +94,16 @@
     <string name="mood_happy_desc">Happy mood icon</string>
     <string name="mood_sad_desc">Sad mood icon</string>
     <string name="mood_neutral_desc">Neutral mood icon</string>
+    <string name="edit_name">Edit name</string>
+    <string name="edit_email">Edit email</string>
+    <string name="edit_language">Edit language</string>
+    <string name="edit_currency">Edit currency</string>
+    <string name="edit_profile_title">Edit</string>
+    <string name="not_set">Not set</string>
+    <string name="name_label">Name:</string>
+    <string name="email_label">Email:</string>
+    <string name="language_label">Language:</string>
+    <string name="currency_label">Currency:</string>
+    <string name="language_russian">Russian</string>
+    <string name="language_english">English</string>
 </resources>

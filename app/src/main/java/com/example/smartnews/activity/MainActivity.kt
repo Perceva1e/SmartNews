@@ -1,5 +1,6 @@
 package com.example.smartnews.activity
 
+import android.content.Context
 import android.content.Intent
 import android.content.res.Configuration
 import android.os.Bundle
@@ -8,6 +9,7 @@ import android.os.Looper
 import android.util.Log
 import android.view.View
 import android.widget.FrameLayout
+import android.widget.ImageButton
 import android.widget.ImageView
 import androidx.appcompat.app.AppCompatActivity
 import androidx.recyclerview.widget.LinearLayoutManager
@@ -40,11 +42,20 @@ class MainActivity : AppCompatActivity() {
     }
     private val sharedPref by lazy { getSharedPreferences("UserPrefs", MODE_PRIVATE) }
     private lateinit var dbHelper: DatabaseHelper
+    private var lastLanguage: String? = null
+
+    override fun attachBaseContext(newBase: Context) {
+        val language = newBase.getSharedPreferences("UserPrefs", MODE_PRIVATE)
+            .getString("app_language", "ru") ?: "ru"
+        val locale = Locale(language)
+        Locale.setDefault(locale)
+        val config = Configuration(newBase.resources.configuration)
+        config.setLocale(locale)
+        super.attachBaseContext(newBase.createConfigurationContext(config))
+        Log.d("MainActivity", "attachBaseContext: Language set to $language")
+    }
 
     override fun onCreate(savedInstanceState: Bundle?) {
-        val savedLang = sharedPref.getString("app_language", "ru")
-        setLocale(savedLang ?: "ru")
-
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_main)
 
@@ -55,6 +66,9 @@ class MainActivity : AppCompatActivity() {
             return
         }
         Log.d("MainActivity", "User ID: $userId received, proceeding")
+
+        // Сохраняем текущий язык для проверки в onResume
+        lastLanguage = sharedPref.getString("app_language", "ru")
 
         dbHelper = DatabaseHelper(this)
         val user = dbHelper.getUserById(userId)
@@ -72,6 +86,14 @@ class MainActivity : AppCompatActivity() {
         newsAdapter = NewsAdapter(email = email)
         recyclerView.adapter = newsAdapter
 
+        val btnNewsFilter = findViewById<ImageButton>(R.id.btnNewsFilter)
+        btnNewsFilter.setOnClickListener {
+            startActivityForResult(Intent(this, NewsFilterActivity::class.java).apply {
+                putExtra("USER_ID", userId)
+            }, 1)
+            applyTransition()
+        }
+
         setupBottomNavigation()
         loadNews(email)
 
@@ -83,17 +105,36 @@ class MainActivity : AppCompatActivity() {
         updateAdVisibility()
     }
 
-    override fun onPause() {
-        super.onPause()
-        adView.pause()
+    override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?) {
+        super.onActivityResult(requestCode, resultCode, data)
+        if (requestCode == 1 && resultCode == RESULT_OK) {
+            val user = dbHelper.getUserById(userId)
+            val email = user?.email ?: ""
+            loadNews(email)
+            Log.d("MainActivity", "Filter updated, reloading news for email: $email")
+        }
     }
 
     override fun onResume() {
         super.onResume()
         adView.resume()
         findViewById<BottomNavigationView>(R.id.bottomNavigation)?.selectedItemId = R.id.navigation_home
-        loadNews(dbHelper.getUserById(userId)?.email ?: "")
+        val user = dbHelper.getUserById(userId)
+        val email = user?.email ?: ""
+        val currentLanguage = sharedPref.getString("app_language", "ru")
+        if (currentLanguage != lastLanguage) {
+            Log.d("MainActivity", "Language changed from $lastLanguage to $currentLanguage, recreating activity")
+            lastLanguage = currentLanguage
+            recreate() // Пересоздаем активность при изменении языка
+        } else {
+            refreshUI(email)
+        }
         updateAdVisibility()
+    }
+
+    override fun onPause() {
+        super.onPause()
+        adView.pause()
     }
 
     override fun onDestroy() {
@@ -146,14 +187,6 @@ class MainActivity : AppCompatActivity() {
         }
     }
 
-    private fun setLocale(language: String) {
-        val locale = Locale(language)
-        Locale.setDefault(locale)
-        val config = Configuration()
-        config.setLocale(locale)
-        baseContext.resources.updateConfiguration(config, baseContext.resources.displayMetrics)
-    }
-
     private fun updateAdVisibility() {
         val user = dbHelper.getUser()
         if (user != null && user.isVip) {
@@ -181,5 +214,17 @@ class MainActivity : AppCompatActivity() {
                 handler.postDelayed(showAdRunnable, 10000)
             }
         }
+    }
+
+    private fun refreshUI(email: String) {
+        loadNews(email)
+        supportActionBar?.title = getString(R.string.app_name)
+        findViewById<BottomNavigationView>(R.id.bottomNavigation)?.menu?.apply {
+            findItem(R.id.navigation_home)?.title = getString(R.string.home)
+            findItem(R.id.navigation_saved)?.title = getString(R.string.saved)
+            findItem(R.id.navigation_recommend)?.title = getString(R.string.recommend)
+            findItem(R.id.navigation_profile)?.title = getString(R.string.profile)
+        }
+        Log.d("MainActivity", "UI refreshed with language: ${sharedPref.getString("app_language", "ru")}")
     }
 }

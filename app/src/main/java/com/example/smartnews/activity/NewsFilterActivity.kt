@@ -85,6 +85,7 @@ class NewsFilterActivity : AppCompatActivity() {
                 lifecycleScope.launch {
                     try {
                         dbHelper.updateUser(user.id, user.name, user.email, user.password, categoriesToSave, user.isVip)
+                        setResult(RESULT_OK)
                         showCustomDialog(
                             getString(R.string.success_title),
                             getString(R.string.filter_saved),
@@ -118,6 +119,7 @@ class NewsFilterActivity : AppCompatActivity() {
                 lifecycleScope.launch {
                     try {
                         dbHelper.updateUser(user.id, user.name, user.email, user.password, null, user.isVip)
+                        setResult(RESULT_OK)
                         showCustomDialog(
                             getString(R.string.success_title),
                             getString(R.string.filter_cleared),

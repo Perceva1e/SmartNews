@@ -63,9 +63,9 @@
     <string name="filter_saved">Фильтр сохранён</string>
     <string name="filter_cleared">Фильтр очищен</string>
     <string-array name="filter_categories">
+        <item>общий</item>
         <item>бизнес</item>
         <item>развлечение</item>
-        <item>общий</item>
         <item>здоровье</item>
         <item>наука</item>
         <item>спорт</item>
@@ -95,4 +95,15 @@
     <string name="mood_happy_desc">Иконка счастливого настроения</string>
     <string name="mood_sad_desc">Иконка грустного настроения</string>
     <string name="mood_neutral_desc">Иконка нейтрального настроения</string>
+    <string name="edit_name">Редактировать имя</string>
+    <string name="edit_email">Редактировать почту</string>
+    <string name="edit_language">Редактировать язык</string>
+    <string name="edit_currency">Редактировать валюту</string>
+    <string name="edit_profile_title">Редактирование</string>
+    <string name="not_set">Не установлено</string>
+    <string name="name_label">Имя:</string>
+    <string name="email_label">Электронная почта:</string>
+    <string name="currency_label">Валюта:</string>
+    <string name="language_russian">Русский</string>
+    <string name="language_english">Английский</string>
 </resources>

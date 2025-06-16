@@ -84,10 +84,11 @@
         android:id="@+id/tvMood"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:textColor="#6B2D88"
-        android:textSize="12sp"
         android:layout_marginTop="4dp"
         android:drawablePadding="4dp"
-        android:maxWidth="200dp" />
+        android:maxWidth="200dp"
+        android:textColor="#6B2D88"
+        android:textSize="12sp"
+        app:tint="#FFFFFF" />
 
 </LinearLayout>

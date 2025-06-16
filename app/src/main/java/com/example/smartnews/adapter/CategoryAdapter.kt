@@ -22,7 +22,8 @@ class CategoryAdapter(
     }
 
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): CategoryViewHolder {
-        val view = LayoutInflater.from(parent.context).inflate(R.layout.item_category, parent, false)
+        val view =
+            LayoutInflater.from(parent.context).inflate(R.layout.item_category, parent, false)
         return CategoryViewHolder(view)
     }
 
@@ -46,9 +47,9 @@ class CategoryAdapter(
 
     private fun getDisplayName(category: String): String {
         return when (category) {
+            "general" -> context.getString(R.string.category_general)
             "business" -> context.getString(R.string.category_business)
             "entertainment" -> context.getString(R.string.category_entertainment)
-            "general" -> context.getString(R.string.category_general)
             "health" -> context.getString(R.string.category_health)
             "science" -> context.getString(R.string.category_science)
             "sports" -> context.getString(R.string.category_sports)

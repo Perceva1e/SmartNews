@@ -1,7 +1,10 @@
 package com.example.smartnews.activity
 
 import android.app.AlertDialog
+import android.content.Context
+import android.content.res.Configuration
 import android.os.Bundle
+import android.util.Log
 import android.view.LayoutInflater
 import android.widget.EditText
 import android.widget.ImageView
@@ -11,11 +14,25 @@ import com.example.smartnews.R
 import com.example.smartnews.bd.DatabaseHelper
 import com.google.android.material.button.MaterialButton
 import kotlinx.coroutines.launch
+import java.util.Locale
 
 class PaymentActivity : AppCompatActivity() {
 
     private lateinit var dbHelper: DatabaseHelper
     private var userId: Int = -1
+    private val sharedPref by lazy { getSharedPreferences("UserPrefs", Context.MODE_PRIVATE) }
+    private var lastKnownLanguage: String? = null
+
+    override fun attachBaseContext(newBase: Context) {
+        val language = newBase.getSharedPreferences("UserPrefs", Context.MODE_PRIVATE)
+            .getString("app_language", "ru") ?: "ru"
+        val locale = Locale(language)
+        Locale.setDefault(locale)
+        val config = Configuration(newBase.resources.configuration)
+        config.setLocale(locale)
+        super.attachBaseContext(newBase.createConfigurationContext(config))
+        Log.d("PaymentActivity", "attachBaseContext: Language set to $language")
+    }
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -23,7 +40,14 @@ class PaymentActivity : AppCompatActivity() {
 
         dbHelper = DatabaseHelper(this)
         userId = intent.getIntExtra("USER_ID", -1)
-        if (userId == -1) finish()
+        if (userId == -1) {
+            Log.e("PaymentActivity", "Invalid USER_ID, finishing activity")
+            finish()
+            return
+        }
+
+        lastKnownLanguage = sharedPref.getString("app_language", "ru")
+        Log.d("PaymentActivity", "onCreate: Language set to $lastKnownLanguage")
 
         val etCardNumber = findViewById<EditText>(R.id.etCardNumber)
         val etCardHolder = findViewById<EditText>(R.id.etCardHolder)
@@ -54,6 +78,7 @@ class PaymentActivity : AppCompatActivity() {
                                 finish()
                             }
                         } catch (e: Exception) {
+                            Log.e("PaymentActivity", "Error updating user VIP status: ${e.message}")
                             showCustomDialog(
                                 getString(R.string.error_title),
                                 getString(R.string.error_operation_failed),
@@ -62,6 +87,7 @@ class PaymentActivity : AppCompatActivity() {
                         }
                     }
                 } else {
+                    Log.e("PaymentActivity", "User not found for ID: $userId")
                     showCustomDialog(
                         getString(R.string.error_title),
                         getString(R.string.error_user_not_found),
@@ -78,7 +104,18 @@ class PaymentActivity : AppCompatActivity() {
         }
 
         ivBack.setOnClickListener {
-            finish()
+            onBackPressedDispatcher.onBackPressed()
+        }
+    }
+
+    override fun onResume() {
+        super.onResume()
+        val currentLang = sharedPref.getString("app_language", "ru")
+        Log.d("PaymentActivity", "onResume: Current language $currentLang, Last known $lastKnownLanguage")
+        if (currentLang != lastKnownLanguage) {
+            Log.d("PaymentActivity", "Language changed detected, recreating activity")
+            lastKnownLanguage = currentLang
+            recreate()
         }
     }
 

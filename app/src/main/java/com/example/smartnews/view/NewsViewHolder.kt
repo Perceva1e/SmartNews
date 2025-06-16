@@ -7,6 +7,7 @@ import android.view.LayoutInflater
 import android.widget.ImageView
 import android.widget.TextView
 import androidx.core.content.res.ResourcesCompat
+import androidx.core.graphics.drawable.DrawableCompat
 import androidx.recyclerview.widget.RecyclerView
 import com.bumptech.glide.Glide
 import com.example.smartnews.R
@@ -49,8 +50,12 @@ class NewsViewHolder(itemView: android.view.View) : RecyclerView.ViewHolder(item
             else -> R.drawable.neutral to R.string.mood_neutral_desc
         }
         val drawable = ResourcesCompat.getDrawable(itemView.context.resources, moodDrawableRes, null)
-        drawable?.setBounds(0, 0, 56, 56)
-        tvMood.setCompoundDrawables(drawable, null, null, null)
+        drawable?.let {
+            val wrappedDrawable = DrawableCompat.wrap(it).mutate()
+            DrawableCompat.setTint(wrappedDrawable, android.graphics.Color.MAGENTA)
+            wrappedDrawable.setBounds(0, 0, 56, 56)
+            tvMood.setCompoundDrawables(wrappedDrawable, null, null, null)
+        }
         tvMood.contentDescription = itemView.context.getString(moodContentDescRes)
 
         if (news.urlToImage != null) {
