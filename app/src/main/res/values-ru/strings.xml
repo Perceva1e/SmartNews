@@ -106,4 +106,11 @@
     <string name="currency_label">Валюта:</string>
     <string name="language_russian">Русский</string>
     <string name="language_english">Английский</string>
+    <string name="error_invalid_email">Введите корректный email-адрес</string>
+    <string name="error_invalid_password">Пароль должен содержать минимум 6 символов и хотя бы один специальный символ</string>
+    <string name="error_delete_failed">Не удалось удалить аккаунт</string>
+    <string name="yes">Да</string>
+    <string name="no">Нет</string>
+    <string name="confirm_delete_title">Подтверждение удаления</string>
+    <string name="confirm_delete_message">Вы уверены, что хотите удалить аккаунт? Это также удалит все ваши сохраненные новости.</string>
 </resources>

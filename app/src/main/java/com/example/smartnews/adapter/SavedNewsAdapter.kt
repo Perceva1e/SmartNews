@@ -5,7 +5,6 @@ import android.view.ViewGroup
 import androidx.recyclerview.widget.RecyclerView
 import com.example.smartnews.R
 import com.example.smartnews.bd.SavedNews
-import com.example.smartnews.view.SavedNewsViewHolder
 
 class SavedNewsAdapter(
     private var newsList: List<SavedNews>,

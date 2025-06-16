@@ -198,7 +198,10 @@ class DatabaseHelper(context: Context) : SQLiteOpenHelper(context, DATABASE_NAME
 
     suspend fun deleteUser(id: Int): Int {
         val db = this.writableDatabase
-        val cursor = db.query(
+        var email: String? = null
+        var newsIds: List<Int> = emptyList()
+
+        val userCursor = db.query(
             TABLE_USERS,
             arrayOf(COLUMN_EMAIL),
             "$COLUMN_ID = ?",
@@ -207,11 +210,31 @@ class DatabaseHelper(context: Context) : SQLiteOpenHelper(context, DATABASE_NAME
             null,
             null
         )
-        var email: String? = null
-        if (cursor.moveToFirst()) {
-            email = cursor.getString(cursor.getColumnIndexOrThrow(COLUMN_EMAIL))
+        if (userCursor.moveToFirst()) {
+            email = userCursor.getString(userCursor.getColumnIndexOrThrow(COLUMN_EMAIL))
         }
-        cursor.close()
+        userCursor.close()
+
+        if (email != null) {
+            val newsCursor = db.query(
+                TABLE_SAVED_NEWS,
+                arrayOf(COLUMN_ID),
+                "$COLUMN_EMAIL_FK = ?",
+                arrayOf(email),
+                null,
+                null,
+                null
+            )
+            newsIds = mutableListOf<Int>().apply {
+                while (newsCursor.moveToNext()) {
+                    add(newsCursor.getInt(newsCursor.getColumnIndexOrThrow(COLUMN_ID)))
+                }
+            }
+            newsCursor.close()
+
+            val newsDeleted = db.delete(TABLE_SAVED_NEWS, "$COLUMN_EMAIL_FK = ?", arrayOf(email))
+            Log.d("DatabaseHelper", "Deleted $newsDeleted saved news for email: $email")
+        }
 
         val rowsAffected = db.delete(TABLE_USERS, "$COLUMN_ID = ?", arrayOf(id.toString()))
         db.close()
@@ -219,10 +242,19 @@ class DatabaseHelper(context: Context) : SQLiteOpenHelper(context, DATABASE_NAME
         if (rowsAffected > 0 && email != null) {
             try {
                 firestore.collection(FIRESTORE_USERS_COLLECTION).document(email).delete().await()
+                Log.d("DatabaseHelper", "Deleted user from Firestore: $email")
+                newsIds.forEach { newsId ->
+                    firestore.collection(FIRESTORE_SAVED_NEWS_COLLECTION)
+                        .document("$email-$newsId")
+                        .delete()
+                        .await()
+                    Log.d("DatabaseHelper", "Deleted saved news from Firestore: $email-$newsId")
+                }
             } catch (e: Exception) {
-                e.printStackTrace()
+                Log.e("DatabaseHelper", "Error deleting from Firestore: ${e.message}")
             }
         }
+
         return rowsAffected
     }
 
@@ -361,6 +393,7 @@ class DatabaseHelper(context: Context) : SQLiteOpenHelper(context, DATABASE_NAME
         db.close()
         return user
     }
+
     fun getUserByEmail(email: String): User? {
         val db = readableDatabase
         val cursor = db.query(

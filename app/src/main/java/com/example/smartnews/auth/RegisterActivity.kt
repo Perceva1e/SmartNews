@@ -50,7 +50,29 @@ class RegisterActivity : AppCompatActivity() {
             val password = etPassword.text.toString().trim()
 
             if (name.isEmpty() || email.isEmpty() || password.isEmpty()) {
-                showCustomDialog(getString(R.string.error_title), getString(R.string.error_empty_fields), R.layout.custom_dialog_error)
+                showCustomDialog(
+                    getString(R.string.error_title),
+                    getString(R.string.error_empty_fields),
+                    R.layout.custom_dialog_error
+                )
+                return@setOnClickListener
+            }
+
+            if (!android.util.Patterns.EMAIL_ADDRESS.matcher(email).matches()) {
+                showCustomDialog(
+                    getString(R.string.error_title),
+                    getString(R.string.error_invalid_email),
+                    R.layout.custom_dialog_error
+                )
+                return@setOnClickListener
+            }
+
+            if (password.length < 6 || !password.contains(Regex("[^a-zA-Z0-9]"))) {
+                showCustomDialog(
+                    getString(R.string.error_title),
+                    getString(R.string.error_invalid_password),
+                    R.layout.custom_dialog_error
+                )
                 return@setOnClickListener
             }
 
@@ -70,17 +92,29 @@ class RegisterActivity : AppCompatActivity() {
 
                     val result = localDb.addUser(name, email, hashedPassword)
                     if (result != -1L) {
-                        showCustomDialog(getString(R.string.success_title), getString(R.string.success_registration), R.layout.custom_dialog_success) {
+                        showCustomDialog(
+                            getString(R.string.success_title),
+                            getString(R.string.success_registration),
+                            R.layout.custom_dialog_success
+                        ) {
                             startActivity(Intent(this@RegisterActivity, MainActivity::class.java).apply {
                                 putExtra("USER_ID", result.toInt())
                             })
                             finish()
                         }
                     } else {
-                        showCustomDialog(getString(R.string.error_title), getString(R.string.error_registration), R.layout.custom_dialog_error)
+                        showCustomDialog(
+                            getString(R.string.error_title),
+                            getString(R.string.error_registration),
+                            R.layout.custom_dialog_error
+                        )
                     }
                 } catch (e: Exception) {
-                    showCustomDialog(getString(R.string.error_title), getString(R.string.error_registration), R.layout.custom_dialog_error)
+                    showCustomDialog(
+                        getString(R.string.error_title),
+                        getString(R.string.error_registration),
+                        R.layout.custom_dialog_error
+                    )
                 }
             }
         }

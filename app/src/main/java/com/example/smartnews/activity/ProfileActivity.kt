@@ -83,33 +83,61 @@ class ProfileActivity : AppCompatActivity() {
         btnEditCurrency.setOnClickListener { startEditActivity("currency") }
 
         btnDeleteAccount.setOnClickListener {
-            val existingUser = dbHelper.getUser()
-            if (existingUser != null) {
-                lifecycleScope.launch {
-                    dbHelper.deleteUser(existingUser.id)
-                    with(sharedPref.edit()) {
-                        clear()
-                        apply()
-                    }
-                    showCustomDialog(
-                        getString(R.string.success_title),
-                        getString(R.string.success_deleted_desc),
-                        R.layout.custom_dialog_success
-                    ) {
-                        val intent = Intent(this@ProfileActivity, RegisterActivity::class.java).apply {
-                            addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP or Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TASK)
+            val dialogView = LayoutInflater.from(this).inflate(R.layout.custom_dialog_confirm, null)
+            val dialogBuilder = AlertDialog.Builder(this)
+                .setView(dialogView)
+                .setCancelable(true)
+            val dialog = dialogBuilder.create()
+            dialog.window?.setBackgroundDrawableResource(android.R.color.transparent)
+
+            dialogView.findViewById<Button>(R.id.btnConfirm).setOnClickListener {
+                val existingUser = dbHelper.getUserById(userId)
+                if (existingUser != null) {
+                    lifecycleScope.launch {
+                        val rowsDeleted = dbHelper.deleteUser(userId)
+                        if (rowsDeleted > 0) {
+                            with(sharedPref.edit()) {
+                                clear()
+                                apply()
+                            }
+                            showCustomDialog(
+                                getString(R.string.success_title),
+                                getString(R.string.success_deleted_desc),
+                                R.layout.custom_dialog_success
+                            ) {
+                                val intent = Intent(this@ProfileActivity, RegisterActivity::class.java).apply {
+                                    addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP or Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TASK)
+                                }
+                                startActivity(intent)
+                                finishAffinity()
+                            }
+                        } else {
+                            showCustomDialog(
+                                getString(R.string.error_title),
+                                getString(R.string.error_delete_failed),
+                                R.layout.custom_dialog_error
+                            )
                         }
-                        startActivity(intent)
-                        finishAffinity()
                     }
+                } else {
+                    showCustomDialog(
+                        getString(R.string.error_title),
+                        getString(R.string.error_user_not_found),
+                        R.layout.custom_dialog_error
+                    )
                 }
-            } else {
-                showCustomDialog(getString(R.string.error_title), getString(R.string.error_user_not_found), R.layout.custom_dialog_error)
+                dialog.dismiss()
             }
+
+            dialogView.findViewById<Button>(R.id.btnCancel).setOnClickListener {
+                dialog.dismiss()
+            }
+
+            dialog.show()
         }
 
         btnBuyVip.setOnClickListener {
-            val user = dbHelper.getUser()
+            val user = dbHelper.getUserById(userId)
             if (user != null && !user.isVip) {
                 startActivity(Intent(this, PaymentActivity::class.java).apply {
                     putExtra("USER_ID", userId)
@@ -205,7 +233,7 @@ class ProfileActivity : AppCompatActivity() {
     }
 
     private fun updateAdVisibility() {
-        val user = dbHelper.getUser()
+        val user = dbHelper.getUserById(userId)
         if (user != null && user.isVip) {
             adContainer.visibility = View.GONE
             handler.removeCallbacks(showAdRunnable)
@@ -233,7 +261,7 @@ class ProfileActivity : AppCompatActivity() {
     }
 
     private fun updateVipButtonState(btnBuyVip: Button?) {
-        val user = dbHelper.getUser()
+        val user = dbHelper.getUserById(userId)
         btnBuyVip?.apply {
             if (user != null && user.isVip) {
                 isEnabled = false
@@ -246,7 +274,7 @@ class ProfileActivity : AppCompatActivity() {
     }
 
     private fun refreshUI() {
-        val user = dbHelper.getUser()
+        val user = dbHelper.getUserById(userId)
         val tvName = findViewById<TextView>(R.id.tvName)
         val tvEmail = findViewById<TextView>(R.id.tvEmail)
         val tvLanguage = findViewById<TextView>(R.id.tvLanguage)
