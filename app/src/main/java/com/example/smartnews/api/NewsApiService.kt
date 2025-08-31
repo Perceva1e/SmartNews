@@ -12,13 +12,4 @@ interface NewsApiService {
         @Query("pageSize") pageSize: Int = 100,
         @Query("category") category: String? = null
     ): NewsResponse
-
-    @GET("everything")
-    suspend fun searchRecommendedNews(
-        @Query("q") query: String,
-        @Query("pageSize") pageSize: Int = 100,
-        @Query("sortBy") sortBy: String = "relevancy",
-        @Query("language") language: String = "en"
-    ): NewsResponse
-
 }

@@ -113,4 +113,7 @@
     <string name="no">Нет</string>
     <string name="confirm_delete_title">Подтверждение удаления</string>
     <string name="confirm_delete_message">Вы уверены, что хотите удалить аккаунт? Это также удалит все ваши сохраненные новости.</string>
+    <string name="no_internet_message">Нет подключения к Интернету</string>
+    <string name="still_no_internet">Все еще нет подключения к Интернету</string>
+    <string name="retry">Повторить попытку</string>
 </resources>

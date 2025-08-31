@@ -113,4 +113,7 @@
     <string name="no">No</string>
     <string name="confirm_delete_title">Confirm Deletion</string>
     <string name="confirm_delete_message">Are you sure you want to delete your account? This will also delete all your saved news.</string>
+    <string name="no_internet_message">No Internet Connection</string>
+    <string name="still_no_internet">Still no internet connection</string>
+    <string name="retry">Retry</string>
 </resources>

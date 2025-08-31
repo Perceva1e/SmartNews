@@ -15,6 +15,9 @@
         android:supportsRtl="true"
         android:theme="@style/Theme.SmartNews">
         <activity
+            android:name=".activity.NoInternetActivity"
+            android:exported="false" />
+        <activity
             android:name=".activity.CategorySavedNewsActivity"
             android:exported="false" />
         <activity

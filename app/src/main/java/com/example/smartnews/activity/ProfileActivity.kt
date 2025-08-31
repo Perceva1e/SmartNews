@@ -25,7 +25,7 @@ import androidx.lifecycle.lifecycleScope
 import com.example.smartnews.auth.RegisterActivity
 import kotlinx.coroutines.launch
 
-class ProfileActivity : AppCompatActivity() {
+class ProfileActivity : BaseActivity() {
 
     private lateinit var dbHelper: DatabaseHelper
     private var userId: Int = -1
@@ -105,7 +105,10 @@ class ProfileActivity : AppCompatActivity() {
                                 getString(R.string.success_deleted_desc),
                                 R.layout.custom_dialog_success
                             ) {
-                                val intent = Intent(this@ProfileActivity, RegisterActivity::class.java).apply {
+                                val intent = Intent(
+                                    this@ProfileActivity,
+                                    RegisterActivity::class.java
+                                ).apply {
                                     addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP or Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TASK)
                                 }
                                 startActivity(intent)
@@ -158,6 +161,7 @@ class ProfileActivity : AppCompatActivity() {
                     applyTransition()
                     true
                 }
+
                 R.id.navigation_saved -> {
                     startActivity(Intent(this, SavedNewsActivity::class.java).apply {
                         putExtra("USER_ID", userId)
@@ -166,6 +170,7 @@ class ProfileActivity : AppCompatActivity() {
                     applyTransition()
                     true
                 }
+
                 R.id.navigation_recommend -> true
                 R.id.navigation_profile -> true
                 else -> false
@@ -216,19 +221,27 @@ class ProfileActivity : AppCompatActivity() {
         }
     }
 
-    private fun showCustomDialog(title: String, message: String, layoutResId: Int, onOk: (() -> Unit)? = null) {
+    private fun showCustomDialog(
+        title: String,
+        message: String,
+        layoutResId: Int,
+        onOk: (() -> Unit)? = null
+    ) {
         val dialogView = LayoutInflater.from(this).inflate(layoutResId, null)
         val dialogBuilder = AlertDialog.Builder(this)
             .setView(dialogView)
             .setCancelable(true)
         val dialog = dialogBuilder.create()
         dialog.window?.setBackgroundDrawableResource(android.R.color.transparent)
-        dialogView.findViewById<androidx.appcompat.widget.AppCompatTextView>(R.id.tvMessage)?.text = title
-        dialogView.findViewById<androidx.appcompat.widget.AppCompatTextView>(R.id.tvDescription)?.text = message
-        dialogView.findViewById<com.google.android.material.button.MaterialButton>(R.id.btnOk)?.setOnClickListener {
-            onOk?.invoke()
-            dialog.dismiss()
-        }
+        dialogView.findViewById<androidx.appcompat.widget.AppCompatTextView>(R.id.tvMessage)?.text =
+            title
+        dialogView.findViewById<androidx.appcompat.widget.AppCompatTextView>(R.id.tvDescription)?.text =
+            message
+        dialogView.findViewById<com.google.android.material.button.MaterialButton>(R.id.btnOk)
+            ?.setOnClickListener {
+                onOk?.invoke()
+                dialog.dismiss()
+            }
         dialog.show()
     }
 
@@ -245,6 +258,7 @@ class ProfileActivity : AppCompatActivity() {
                     super.onAdLoaded()
                     ivCloseAd.visibility = View.VISIBLE
                 }
+
                 override fun onAdFailedToLoad(error: LoadAdError) {
                     super.onAdFailedToLoad(error)
                     ivCloseAd.visibility = View.GONE
@@ -287,8 +301,12 @@ class ProfileActivity : AppCompatActivity() {
                 "en" -> getString(R.string.language_english)
                 else -> getString(R.string.not_set)
             }
-            tvCurrency.text = sharedPref.getString("app_currency", "RUB") ?: getString(R.string.not_set)
+            tvCurrency.text =
+                sharedPref.getString("app_currency", "RUB") ?: getString(R.string.not_set)
         }
-        Log.d("ProfileActivity", "refreshUI: Updated with language ${sharedPref.getString("app_language", "ru")}")
+        Log.d(
+            "ProfileActivity",
+            "refreshUI: Updated with language ${sharedPref.getString("app_language", "ru")}"
+        )
     }
 }

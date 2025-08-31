@@ -11,7 +11,7 @@ import androidx.appcompat.widget.Toolbar
 import androidx.core.content.ContextCompat
 import androidx.core.graphics.drawable.DrawableCompat
 
-class CategorySavedNewsActivity : AppCompatActivity() {
+class CategorySavedNewsActivity : BaseActivity() {
     private val sharedPref by lazy { getSharedPreferences("UserPrefs", MODE_PRIVATE) }
     private val categoriesMap = mapOf(
         "general" to R.string.category_general,

@@ -7,7 +7,7 @@ import android.view.LayoutInflater
 import android.widget.Button
 import android.widget.EditText
 import androidx.appcompat.app.AlertDialog
-import androidx.appcompat.app.AppCompatActivity
+import com.example.smartnews.activity.BaseActivity
 import androidx.lifecycle.lifecycleScope
 import com.example.smartnews.R
 import com.example.smartnews.activity.MainActivity
@@ -20,7 +20,7 @@ import kotlinx.coroutines.tasks.await
 import org.mindrot.jbcrypt.BCrypt
 import java.util.Locale
 
-class LoginActivity : AppCompatActivity() {
+class LoginActivity :  BaseActivity() {
     private lateinit var etEmail: EditText
     private lateinit var etPassword: EditText
     private lateinit var btnLogin: Button

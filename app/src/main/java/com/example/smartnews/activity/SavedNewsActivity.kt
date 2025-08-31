@@ -13,7 +13,7 @@ import com.example.smartnews.R
 import com.google.android.material.bottomnavigation.BottomNavigationView
 import java.util.Locale
 
-class SavedNewsActivity : AppCompatActivity() {
+class SavedNewsActivity : BaseActivity() {
     private var userId: Int = -1
     private val sharedPref by lazy { getSharedPreferences("UserPrefs", MODE_PRIVATE) }
     private val categoriesMap = mapOf(

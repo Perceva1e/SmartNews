@@ -18,7 +18,7 @@ import java.util.*
 import androidx.lifecycle.lifecycleScope
 import kotlinx.coroutines.launch
 
-class NewsFilterActivity : AppCompatActivity() {
+class NewsFilterActivity : BaseActivity() {
 
     private lateinit var dbHelper: DatabaseHelper
     private var userId: Int = -1

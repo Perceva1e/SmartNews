@@ -8,7 +8,7 @@ import android.util.Log
 import android.view.LayoutInflater
 import android.widget.EditText
 import android.widget.ImageView
-import androidx.appcompat.app.AppCompatActivity
+
 import androidx.lifecycle.lifecycleScope
 import com.example.smartnews.R
 import com.example.smartnews.bd.DatabaseHelper
@@ -16,7 +16,7 @@ import com.google.android.material.button.MaterialButton
 import kotlinx.coroutines.launch
 import java.util.Locale
 
-class PaymentActivity : AppCompatActivity() {
+class PaymentActivity :  BaseActivity() {
 
     private lateinit var dbHelper: DatabaseHelper
     private var userId: Int = -1
