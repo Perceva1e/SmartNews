@@ -67,7 +67,6 @@ class MainActivity : BaseActivity() {
         }
         Log.d("MainActivity", "User ID: $userId received, proceeding")
 
-        // Сохраняем текущий язык для проверки в onResume
         lastLanguage = sharedPref.getString("app_language", "ru")
 
         dbHelper = DatabaseHelper(this)
@@ -125,7 +124,7 @@ class MainActivity : BaseActivity() {
         if (currentLanguage != lastLanguage) {
             Log.d("MainActivity", "Language changed from $lastLanguage to $currentLanguage, recreating activity")
             lastLanguage = currentLanguage
-            recreate() // Пересоздаем активность при изменении языка
+            recreate()
         } else {
             refreshUI(email)
         }

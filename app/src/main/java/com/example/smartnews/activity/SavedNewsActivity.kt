@@ -8,7 +8,6 @@ import android.util.Log
 import android.view.LayoutInflater
 import android.widget.Button
 import android.widget.LinearLayout
-import androidx.appcompat.app.AppCompatActivity
 import com.example.smartnews.R
 import com.google.android.material.bottomnavigation.BottomNavigationView
 import java.util.Locale

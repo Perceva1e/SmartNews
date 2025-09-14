@@ -11,7 +11,6 @@ import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
 import android.widget.*
-import androidx.appcompat.app.AppCompatActivity
 import com.example.smartnews.R
 import com.example.smartnews.bd.DatabaseHelper
 import com.google.android.gms.ads.AdListener
@@ -38,10 +37,10 @@ class ProfileActivity : BaseActivity() {
         adContainer.visibility = View.VISIBLE
         adView.loadAd(adRequest)
     }
-    private val sharedPref by lazy { getSharedPreferences("UserPrefs", Context.MODE_PRIVATE) }
+    private val sharedPref by lazy { getSharedPreferences("UserPrefs", MODE_PRIVATE) }
 
     override fun attachBaseContext(newBase: Context) {
-        val language = newBase.getSharedPreferences("UserPrefs", Context.MODE_PRIVATE)
+        val language = newBase.getSharedPreferences("UserPrefs", MODE_PRIVATE)
             .getString("app_language", "ru") ?: "ru"
         val locale = Locale(language)
         Locale.setDefault(locale)
@@ -64,10 +63,6 @@ class ProfileActivity : BaseActivity() {
 
         dbHelper = DatabaseHelper(this)
 
-        val tvName = findViewById<TextView>(R.id.tvName)
-        val tvEmail = findViewById<TextView>(R.id.tvEmail)
-        val tvLanguage = findViewById<TextView>(R.id.tvLanguage)
-        val tvCurrency = findViewById<TextView>(R.id.tvCurrency)
         val btnEditName = findViewById<ImageButton>(R.id.btnEditName)
         val btnEditEmail = findViewById<ImageButton>(R.id.btnEditEmail)
         val btnEditLanguage = findViewById<ImageButton>(R.id.btnEditLanguage)

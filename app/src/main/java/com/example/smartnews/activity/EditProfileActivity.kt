@@ -118,7 +118,6 @@ class EditProfileActivity : BaseActivity() {
                         apply()
                     }
                     showCustomDialog(getString(R.string.success_title), getString(R.string.saved), R.layout.custom_dialog_success) {
-                        // Перезапускаем приложение с новой локалью
                         val intent = Intent(this@EditProfileActivity, MainActivity::class.java).apply {
                             putExtra("USER_ID", userId)
                             addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP or Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TASK)
