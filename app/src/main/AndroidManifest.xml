@@ -17,6 +17,10 @@
         <activity
             android:name=".activity.NoInternetActivity"
             android:exported="false" />
+        <activity android:name=".auth.ForgotPasswordActivity" />
+        <activity
+            android:name=".auth.EmailVerificationActivity"
+            android:exported="false" />
         <activity
             android:name=".activity.CategorySavedNewsActivity"
             android:exported="false" />

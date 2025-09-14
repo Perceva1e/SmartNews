@@ -7,25 +7,27 @@ import android.view.LayoutInflater
 import android.widget.Button
 import android.widget.EditText
 import androidx.appcompat.app.AlertDialog
-import com.example.smartnews.activity.BaseActivity
 import androidx.lifecycle.lifecycleScope
+import com.example.smartnews.activity.BaseActivity
 import com.example.smartnews.R
 import com.example.smartnews.activity.MainActivity
 import com.example.smartnews.bd.DatabaseHelper
 import com.example.smartnews.bd.SavedNews
 import com.google.firebase.FirebaseApp
+import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.firestore.FirebaseFirestore
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.tasks.await
 import org.mindrot.jbcrypt.BCrypt
 import java.util.Locale
 
-class LoginActivity :  BaseActivity() {
+class LoginActivity : BaseActivity() {
     private lateinit var etEmail: EditText
     private lateinit var etPassword: EditText
     private lateinit var btnLogin: Button
     private lateinit var btnGoToRegister: Button
     private lateinit var localDb: DatabaseHelper
+    private lateinit var auth: FirebaseAuth
     private val firestore: FirebaseFirestore = FirebaseFirestore.getInstance()
 
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -34,6 +36,7 @@ class LoginActivity :  BaseActivity() {
         setLocale(savedLang ?: "ru")
 
         FirebaseApp.initializeApp(this)
+        auth = FirebaseAuth.getInstance()
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_login)
 
@@ -54,51 +57,68 @@ class LoginActivity :  BaseActivity() {
 
             lifecycleScope.launch {
                 try {
-                    val user = localDb.checkUser(email, password)
-                    if (user != null) {
-                        syncSavedNewsFromFirestore(email)
-                        showCustomDialog(getString(R.string.success_title), getString(R.string.success_login), R.layout.custom_dialog_success) {
-                            startActivity(Intent(this@LoginActivity, MainActivity::class.java).apply {
-                                putExtra("USER_ID", user.id)
-                            })
-                            finish()
-                        }
-                    } else {
-                        val document = firestore.collection("users").document(email).get().await()
-                        if (document.exists()) {
-                            val firestoreUser = document.data
-                            val firestorePassword = firestoreUser?.get("password") as? String
-                            if (firestorePassword != null && BCrypt.checkpw(password, firestorePassword)) {
-                                val name = firestoreUser["name"] as? String ?: ""
-                                val newsCategories = firestoreUser["news_categories"] as? String
-                                val isVip = firestoreUser["is_vip"] as? Boolean ?: false
-                                val result = localDb.addUser(name, email, firestorePassword, newsCategories, isVip)
-                                if (result != -1L) {
-                                    syncSavedNewsFromFirestore(email)
-                                    showCustomDialog(getString(R.string.success_title), getString(R.string.success_login), R.layout.custom_dialog_success) {
-                                        startActivity(Intent(this@LoginActivity, MainActivity::class.java).apply {
-                                            putExtra("USER_ID", result.toInt())
-                                        })
-                                        finish()
+                    val authResult = auth.signInWithEmailAndPassword(email, password).await()
+                    val firebaseUser = authResult.user
+                    if (firebaseUser != null) {
+                        if (firebaseUser.isEmailVerified) {
+                            var user = localDb.getUserByEmail(email)
+                            if (user == null || !BCrypt.checkpw(password, user.password)) {
+                                val hashedPassword = BCrypt.hashpw(password, BCrypt.gensalt())
+                                val document = firestore.collection("users").document(email).get().await()
+                                if (document.exists()) {
+                                    val firestoreUser = document.data
+                                    val name = firestoreUser?.get("name") as? String ?: ""
+                                    val newsCategories = firestoreUser?.get("news_categories") as? String
+                                    val isVip = firestoreUser?.get("is_vip") as? Boolean ?: false
+                                    val result = localDb.updateUser(user?.id ?: 0, name, email, hashedPassword, newsCategories, isVip)
+                                    if (result > 0) {
+                                        firestore.collection("users").document(email).update("password", hashedPassword).await()
+                                    } else {
+                                        val addResult = localDb.addUser(name, email, hashedPassword, newsCategories, isVip)
+                                        if (addResult == -1L) {
+                                            showCustomDialog(getString(R.string.error_title), getString(R.string.error_registration), R.layout.custom_dialog_error)
+                                            return@launch
+                                        }
                                     }
+                                    user = localDb.getUserByEmail(email)
                                 } else {
-                                    showCustomDialog(getString(R.string.error_title), getString(R.string.error_registration), R.layout.custom_dialog_error)
+                                    showCustomDialog(getString(R.string.error_title), getString(R.string.error_invalid_credentials), R.layout.custom_dialog_error)
+                                    return@launch
                                 }
-                            } else {
-                                showCustomDialog(getString(R.string.error_title), getString(R.string.error_invalid_credentials), R.layout.custom_dialog_error)
+                            }
+                            syncSavedNewsFromFirestore(email)
+                            showCustomDialog(getString(R.string.success_title), getString(R.string.success_login), R.layout.custom_dialog_success) {
+                                startActivity(Intent(this@LoginActivity, MainActivity::class.java).apply {
+                                    putExtra("USER_ID", user!!.id)
+                                })
+                                finish()
                             }
                         } else {
-                            showCustomDialog(getString(R.string.error_title), getString(R.string.error_invalid_credentials), R.layout.custom_dialog_error)
+                            showCustomDialog(
+                                getString(R.string.error_title),
+                                getString(R.string.error_not_verified),
+                                R.layout.custom_dialog_error
+                            ) {
+                                val intent = Intent(this@LoginActivity, EmailVerificationActivity::class.java)
+                                intent.putExtra("EMAIL", email)
+                                startActivity(intent)
+                            }
                         }
+                    } else {
+                        showCustomDialog(getString(R.string.error_title), getString(R.string.error_invalid_credentials), R.layout.custom_dialog_error)
                     }
                 } catch (e: Exception) {
-                    showCustomDialog(getString(R.string.error_title), getString(R.string.error_operation_failed), R.layout.custom_dialog_error)
+                    showCustomDialog(getString(R.string.error_title), getString(R.string.error_operation_failed) + ": ${e.message}", R.layout.custom_dialog_error)
                 }
             }
         }
 
         btnGoToRegister.setOnClickListener {
             startActivity(Intent(this, RegisterActivity::class.java))
+        }
+
+        findViewById<Button>(R.id.btnForgotPassword).setOnClickListener {
+            startActivity(Intent(this, ForgotPasswordActivity::class.java))
         }
     }
 
@@ -132,7 +152,6 @@ class LoginActivity :  BaseActivity() {
     private fun setLocale(language: String) {
         val locale = Locale(language)
         Locale.setDefault(locale)
-
         val config = Configuration()
         config.setLocale(locale)
         baseContext.resources.updateConfiguration(config, baseContext.resources.displayMetrics)

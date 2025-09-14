@@ -7,12 +7,12 @@ import android.view.LayoutInflater
 import android.widget.Button
 import android.widget.EditText
 import androidx.appcompat.app.AlertDialog
-import com.example.smartnews.activity.BaseActivity
 import androidx.lifecycle.lifecycleScope
+import com.example.smartnews.activity.BaseActivity
 import com.example.smartnews.R
-import com.example.smartnews.activity.MainActivity
 import com.example.smartnews.bd.DatabaseHelper
 import com.google.firebase.FirebaseApp
+import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.firestore.FirebaseFirestore
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.tasks.await
@@ -26,6 +26,7 @@ class RegisterActivity : BaseActivity() {
     private lateinit var btnRegister: Button
     private lateinit var btnGoToLogin: Button
     private lateinit var localDb: DatabaseHelper
+    private lateinit var auth: FirebaseAuth
     private val firestore: FirebaseFirestore = FirebaseFirestore.getInstance()
 
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -34,6 +35,7 @@ class RegisterActivity : BaseActivity() {
         setLocale(savedLang ?: "ru")
 
         FirebaseApp.initializeApp(this)
+        auth = FirebaseAuth.getInstance()
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_register)
 
@@ -76,31 +78,40 @@ class RegisterActivity : BaseActivity() {
                 return@setOnClickListener
             }
 
-            val hashedPassword = BCrypt.hashpw(password, BCrypt.gensalt())
-
             lifecycleScope.launch {
                 try {
-                    val document = firestore.collection("users").document(email).get().await()
-                    if (document.exists()) {
-                        showCustomDialog(
-                            getString(R.string.error_title),
-                            getString(R.string.error_user_exists),
-                            R.layout.custom_dialog_error
-                        )
-                        return@launch
-                    }
+                    val authResult = auth.createUserWithEmailAndPassword(email, password).await()
+                    val firebaseUser = authResult.user
+                    if (firebaseUser != null) {
+                        firebaseUser.sendEmailVerification().await()
+                        val hashedPassword = BCrypt.hashpw(password, BCrypt.gensalt())
+                        val result = localDb.addUser(name, email, hashedPassword)
+                        if (result != -1L) {
+                            val userMap = hashMapOf(
+                                "name" to name,
+                                "email" to email,
+                                "password" to hashedPassword,
+                                "verified" to false
+                            )
+                            firestore.collection("users").document(email).set(userMap).await()
 
-                    val result = localDb.addUser(name, email, hashedPassword)
-                    if (result != -1L) {
-                        showCustomDialog(
-                            getString(R.string.success_title),
-                            getString(R.string.success_registration),
-                            R.layout.custom_dialog_success
-                        ) {
-                            startActivity(Intent(this@RegisterActivity, MainActivity::class.java).apply {
-                                putExtra("USER_ID", result.toInt())
-                            })
-                            finish()
+                            showCustomDialog(
+                                getString(R.string.success_title),
+                                getString(R.string.success_registration_verify_email),
+                                R.layout.custom_dialog_success
+                            ) {
+                                val intent = Intent(this@RegisterActivity, EmailVerificationActivity::class.java)
+                                intent.putExtra("EMAIL", email)
+                                startActivity(intent)
+                                finish()
+                            }
+                        } else {
+                            firebaseUser.delete().await()
+                            showCustomDialog(
+                                getString(R.string.error_title),
+                                getString(R.string.error_registration),
+                                R.layout.custom_dialog_error
+                            )
                         }
                     } else {
                         showCustomDialog(
@@ -112,7 +123,7 @@ class RegisterActivity : BaseActivity() {
                 } catch (e: Exception) {
                     showCustomDialog(
                         getString(R.string.error_title),
-                        getString(R.string.error_registration),
+                        getString(R.string.error_registration) + ": ${e.message}",
                         R.layout.custom_dialog_error
                     )
                 }
@@ -127,7 +138,6 @@ class RegisterActivity : BaseActivity() {
     private fun setLocale(language: String) {
         val locale = Locale(language)
         Locale.setDefault(locale)
-
         val config = Configuration()
         config.setLocale(locale)
         baseContext.resources.updateConfiguration(config, baseContext.resources.displayMetrics)

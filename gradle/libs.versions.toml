@@ -1,6 +1,8 @@
 [versions]
 agp = "8.9.0"
 appcompatVersion = "1.4.1"
+firebaseAuth = "23.0.0"
+firebaseFirestoreKtx = "24.10.0"
 gotrueKt = "2.4.0"
 gradle = "7.2.2"
 kotlin = "2.0.21"
@@ -32,6 +34,8 @@ androidx-appcompat-v141 = { module = "androidx.appcompat:appcompat", version.ref
 androidx-core-ktx = { group = "androidx.core", name = "core-ktx", version.ref = "coreKtx" }
 androidx-recyclerview-v121 = { module = "androidx.recyclerview:recyclerview", version.ref = "recyclerviewVersion" }
 androidx-sqlite-ktx = { module = "androidx.sqlite:sqlite-ktx", version.ref = "sqliteKtx" }
+firebase-auth = { module = "com.google.firebase:firebase-auth", version.ref = "firebaseAuth" }
+firebase-firestore-ktx = { module = "com.google.firebase:firebase-firestore-ktx", version.ref = "firebaseFirestoreKtx" }
 gotrue-kt = { module = "io.github.jan-tennert.supabase:gotrue-kt", version.ref = "gotrueKt" }
 gradle = { module = "com.android.tools.build:gradle", version.ref = "gradle" }
 junit = { group = "junit", name = "junit", version.ref = "junit" }

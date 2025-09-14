@@ -5,6 +5,7 @@ import android.content.Context
 import android.database.sqlite.SQLiteDatabase
 import android.database.sqlite.SQLiteOpenHelper
 import android.util.Log
+import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.firestore.FirebaseFirestore
 import kotlinx.coroutines.tasks.await
 import org.mindrot.jbcrypt.BCrypt
@@ -33,6 +34,7 @@ class DatabaseHelper(context: Context) : SQLiteOpenHelper(context, DATABASE_NAME
     }
 
     private val firestore: FirebaseFirestore = FirebaseFirestore.getInstance()
+    private val auth: FirebaseAuth = FirebaseAuth.getInstance()
 
     override fun onCreate(db: SQLiteDatabase) {
         val createUsersTable = ("CREATE TABLE $TABLE_USERS ("
@@ -104,39 +106,16 @@ class DatabaseHelper(context: Context) : SQLiteOpenHelper(context, DATABASE_NAME
                 COLUMN_EMAIL to email,
                 COLUMN_PASSWORD to password,
                 COLUMN_NEWS_CATEGORIES to newsCategories,
-                COLUMN_IS_VIP to isVip
+                COLUMN_IS_VIP to isVip,
+                "verified" to false
             )
             try {
                 firestore.collection(FIRESTORE_USERS_COLLECTION).document(email).set(userMap).await()
             } catch (e: Exception) {
-                e.printStackTrace()
+                Log.e("DatabaseHelper", "Error saving to Firestore: ${e.message}")
             }
         }
         return id
-    }
-
-    fun checkUser(email: String, password: String): User? {
-        val db = readableDatabase
-        val cursor = db.rawQuery("SELECT * FROM $TABLE_USERS WHERE $COLUMN_EMAIL = ?", arrayOf(email))
-        return if (cursor.moveToFirst()) {
-            val storedHashedPassword = cursor.getString(cursor.getColumnIndexOrThrow(COLUMN_PASSWORD))
-            if (BCrypt.checkpw(password, storedHashedPassword)) {
-                User(
-                    id = cursor.getInt(cursor.getColumnIndexOrThrow(COLUMN_ID)),
-                    name = cursor.getString(cursor.getColumnIndexOrThrow(COLUMN_NAME)),
-                    email = cursor.getString(cursor.getColumnIndexOrThrow(COLUMN_EMAIL)),
-                    password = storedHashedPassword,
-                    newsCategories = cursor.getString(cursor.getColumnIndexOrThrow(COLUMN_NEWS_CATEGORIES)),
-                    isVip = cursor.getInt(cursor.getColumnIndexOrThrow(COLUMN_IS_VIP)) == 1
-                )
-            } else {
-                cursor.close()
-                null
-            }
-        } else {
-            cursor.close()
-            null
-        }
     }
 
     fun getUser(): User? {
@@ -185,12 +164,13 @@ class DatabaseHelper(context: Context) : SQLiteOpenHelper(context, DATABASE_NAME
                 COLUMN_EMAIL to email,
                 COLUMN_PASSWORD to hashedPassword,
                 COLUMN_NEWS_CATEGORIES to newsCategories,
-                COLUMN_IS_VIP to isVip
+                COLUMN_IS_VIP to isVip,
+                "verified" to (auth.currentUser?.isEmailVerified ?: false)
             )
             try {
                 firestore.collection(FIRESTORE_USERS_COLLECTION).document(email).set(userMap).await()
             } catch (e: Exception) {
-                e.printStackTrace()
+                Log.e("DatabaseHelper", "Error updating Firestore: ${e.message}")
             }
         }
         return rowsAffected
@@ -241,6 +221,11 @@ class DatabaseHelper(context: Context) : SQLiteOpenHelper(context, DATABASE_NAME
 
         if (rowsAffected > 0 && email != null) {
             try {
+                val firebaseUser = auth.currentUser
+                if (firebaseUser != null && firebaseUser.email == email) {
+                    firebaseUser.delete().await()
+                    Log.d("DatabaseHelper", "Deleted user from Firebase Auth: $email")
+                }
                 firestore.collection(FIRESTORE_USERS_COLLECTION).document(email).delete().await()
                 Log.d("DatabaseHelper", "Deleted user from Firestore: $email")
                 newsIds.forEach { newsId ->
@@ -251,7 +236,7 @@ class DatabaseHelper(context: Context) : SQLiteOpenHelper(context, DATABASE_NAME
                     Log.d("DatabaseHelper", "Deleted saved news from Firestore: $email-$newsId")
                 }
             } catch (e: Exception) {
-                Log.e("DatabaseHelper", "Error deleting from Firestore: ${e.message}")
+                Log.e("DatabaseHelper", "Error deleting from Firebase: ${e.message}")
             }
         }
 
@@ -314,7 +299,7 @@ class DatabaseHelper(context: Context) : SQLiteOpenHelper(context, DATABASE_NAME
                     .delete()
                     .await()
             } catch (e: Exception) {
-                e.printStackTrace()
+                Log.e("DatabaseHelper", "Error deleting from Firestore: ${e.message}")
             }
         }
         return rowsAffected
@@ -351,20 +336,6 @@ class DatabaseHelper(context: Context) : SQLiteOpenHelper(context, DATABASE_NAME
         cursor.close()
         db.close()
         return newsList
-    }
-
-    fun getAllCategories(email: String): List<String> {
-        val db = this.readableDatabase
-        val categories = mutableListOf<String>()
-        val cursor = db.rawQuery("SELECT DISTINCT $COLUMN_NEWS_CATEGORY FROM $TABLE_SAVED_NEWS WHERE $COLUMN_EMAIL_FK = ?", arrayOf(email))
-        while (cursor.moveToNext()) {
-            cursor.getString(cursor.getColumnIndexOrThrow(COLUMN_NEWS_CATEGORY))?.let {
-                categories.add(it)
-            }
-        }
-        cursor.close()
-        db.close()
-        return categories
     }
 
     fun getUserById(id: Int): User? {
