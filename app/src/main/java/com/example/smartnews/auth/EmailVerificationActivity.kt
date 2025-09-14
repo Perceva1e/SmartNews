@@ -6,6 +6,7 @@ import android.os.Handler
 import android.os.Looper
 import android.view.LayoutInflater
 import android.view.View
+import android.widget.ImageView
 import android.widget.ProgressBar
 import android.widget.TextView
 import androidx.appcompat.app.AlertDialog
@@ -25,6 +26,7 @@ class EmailVerificationActivity : BaseActivity() {
     private lateinit var tvInstruction: TextView
     private lateinit var btnResend: MaterialButton
     private lateinit var progressBar: ProgressBar
+    private lateinit var ivBack: ImageView
     private lateinit var auth: FirebaseAuth
     private val firestore: FirebaseFirestore = FirebaseFirestore.getInstance()
     private var email: String = ""
@@ -49,9 +51,15 @@ class EmailVerificationActivity : BaseActivity() {
         tvInstruction = findViewById(R.id.tvInstruction)
         btnResend = findViewById(R.id.btnResend)
         progressBar = findViewById(R.id.progressBar)
+        ivBack = findViewById(R.id.ivBack)
 
         email = intent.getStringExtra("EMAIL") ?: ""
         tvEmail.text = getString(R.string.verification_sent_to, email)
+
+        ivBack.setOnClickListener {
+            val intent = Intent(this@EmailVerificationActivity, RegisterActivity::class.java)
+            startActivity(intent)
+        }
 
         btnResend.setOnClickListener {
             lifecycleScope.launch {

@@ -3,6 +3,8 @@ package com.example.smartnews.auth
 import android.content.Intent
 import android.content.res.Configuration
 import android.os.Bundle
+import android.text.method.HideReturnsTransformationMethod
+import android.text.method.PasswordTransformationMethod
 import android.view.LayoutInflater
 import android.widget.Button
 import android.widget.EditText
@@ -28,6 +30,7 @@ class RegisterActivity : BaseActivity() {
     private lateinit var localDb: DatabaseHelper
     private lateinit var auth: FirebaseAuth
     private val firestore: FirebaseFirestore = FirebaseFirestore.getInstance()
+    private var isPasswordVisible: Boolean = false
 
     override fun onCreate(savedInstanceState: Bundle?) {
         val sharedPref = getSharedPreferences("UserPrefs", MODE_PRIVATE)
@@ -45,6 +48,25 @@ class RegisterActivity : BaseActivity() {
         btnRegister = findViewById(R.id.btnRegister)
         btnGoToLogin = findViewById(R.id.btnGoToLogin)
         localDb = DatabaseHelper(this)
+
+        etPassword.setCompoundDrawablesWithIntrinsicBounds(R.drawable.ic_lock, 0, R.drawable.ic_eye_off, 0)
+        etPassword.setOnTouchListener { _, event ->
+            if (event.action == android.view.MotionEvent.ACTION_UP) {
+                if (event.rawX >= (etPassword.right - etPassword.compoundDrawables[2].bounds.width())) {
+                    isPasswordVisible = !isPasswordVisible
+                    if (isPasswordVisible) {
+                        etPassword.transformationMethod = HideReturnsTransformationMethod.getInstance()
+                        etPassword.setCompoundDrawablesWithIntrinsicBounds(R.drawable.ic_lock, 0, R.drawable.ic_eye, 0)
+                    } else {
+                        etPassword.transformationMethod = PasswordTransformationMethod.getInstance()
+                        etPassword.setCompoundDrawablesWithIntrinsicBounds(R.drawable.ic_lock, 0, R.drawable.ic_eye_off, 0)
+                    }
+                    etPassword.setSelection(etPassword.text.length)
+                    return@setOnTouchListener true
+                }
+            }
+            false
+        }
 
         btnRegister.setOnClickListener {
             val name = etName.text.toString().trim()
