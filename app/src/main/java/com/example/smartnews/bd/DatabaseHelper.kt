@@ -141,7 +141,6 @@ class DatabaseHelper(context: Context) : SQLiteOpenHelper(context, DATABASE_NAME
             )
         }
         cursor.close()
-        db.close()
         return user
     }
 
@@ -334,7 +333,6 @@ class DatabaseHelper(context: Context) : SQLiteOpenHelper(context, DATABASE_NAME
             )
         }
         cursor.close()
-        db.close()
         return newsList
     }
 
@@ -361,7 +359,6 @@ class DatabaseHelper(context: Context) : SQLiteOpenHelper(context, DATABASE_NAME
             )
         }
         cursor.close()
-        db.close()
         return user
     }
 
@@ -388,7 +385,6 @@ class DatabaseHelper(context: Context) : SQLiteOpenHelper(context, DATABASE_NAME
             )
         }
         cursor.close()
-        db.close()
         return user
     }
 }

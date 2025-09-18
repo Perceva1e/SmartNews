@@ -9,25 +9,38 @@ import android.os.Looper
 import android.util.Log
 import android.view.View
 import android.widget.FrameLayout
-import android.widget.ImageButton
 import android.widget.ImageView
 import androidx.recyclerview.widget.LinearLayoutManager
+import androidx.recyclerview.widget.RecyclerView
 import com.example.smartnews.R
 import com.example.smartnews.adapter.NewsAdapter
-import com.example.smartnews.adapter.NewsLoader
 import com.example.smartnews.adapter.SpacingItemDecoration
+import com.example.smartnews.api.model.News
 import com.example.smartnews.bd.DatabaseHelper
+import com.example.smartnews.bd.SavedNews
 import com.google.android.gms.ads.AdListener
 import com.google.android.gms.ads.AdRequest
 import com.google.android.gms.ads.AdView
 import com.google.android.gms.ads.LoadAdError
 import com.google.android.gms.ads.MobileAds
 import com.google.android.material.bottomnavigation.BottomNavigationView
+import com.google.gson.Gson
+import com.google.gson.reflect.TypeToken
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.Job
+import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
+import okhttp3.MediaType.Companion.toMediaTypeOrNull
+import okhttp3.OkHttpClient
+import okhttp3.Request
+import okhttp3.RequestBody.Companion.toRequestBody
 import java.util.Locale
+import java.util.concurrent.TimeUnit
 
-class MainActivity : BaseActivity() {
+class RecommendActivity : BaseActivity() {
 
-    private lateinit var recyclerView: androidx.recyclerview.widget.RecyclerView
+    private lateinit var recyclerView: RecyclerView
     private lateinit var newsAdapter: NewsAdapter
     private var userId: Int = -1
     private lateinit var adContainer: FrameLayout
@@ -42,6 +55,8 @@ class MainActivity : BaseActivity() {
     private val sharedPref by lazy { getSharedPreferences("UserPrefs", MODE_PRIVATE) }
     private lateinit var dbHelper: DatabaseHelper
     private var lastLanguage: String? = null
+    private var recommendationJob: Job? = null
+    private var isLoadingRecommendations = false
 
     override fun attachBaseContext(newBase: Context) {
         val language = newBase.getSharedPreferences("UserPrefs", MODE_PRIVATE)
@@ -51,20 +66,20 @@ class MainActivity : BaseActivity() {
         val config = Configuration(newBase.resources.configuration)
         config.setLocale(locale)
         super.attachBaseContext(newBase.createConfigurationContext(config))
-        Log.d("MainActivity", "attachBaseContext: Language set to $language")
+        Log.d("RecommendActivity", "attachBaseContext: Language set to $language")
     }
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        setContentView(R.layout.activity_main)
+        setContentView(R.layout.activity_recommend)
 
         userId = intent.getIntExtra("USER_ID", -1)
         if (userId == -1) {
-            Log.e("MainActivity", "Invalid USER_ID, finishing activity")
+            Log.e("RecommendActivity", "Invalid USER_ID, finishing activity")
             finish()
             return
         }
-        Log.d("MainActivity", "User ID: $userId received, proceeding")
+        Log.d("RecommendActivity", "User ID: $userId received, proceeding")
 
         lastLanguage = sharedPref.getString("app_language", "ru")
 
@@ -72,7 +87,7 @@ class MainActivity : BaseActivity() {
         val user = dbHelper.getUserById(userId)
         val email = user?.email ?: ""
         if (email.isEmpty()) {
-            Log.e("MainActivity", "User email not found for userId: $userId, finishing activity")
+            Log.e("RecommendActivity", "User email not found for userId: $userId, finishing activity")
             finish()
             return
         }
@@ -84,16 +99,7 @@ class MainActivity : BaseActivity() {
         newsAdapter = NewsAdapter(email = email)
         recyclerView.adapter = newsAdapter
 
-        val btnNewsFilter = findViewById<ImageButton>(R.id.btnNewsFilter)
-        btnNewsFilter.setOnClickListener {
-            startActivityForResult(Intent(this, NewsFilterActivity::class.java).apply {
-                putExtra("USER_ID", userId)
-            }, 1)
-            applyTransition()
-        }
-
         setupBottomNavigation()
-        loadNews(email)
 
         adContainer = findViewById(R.id.adContainer)
         adView = findViewById(R.id.adView)
@@ -101,6 +107,7 @@ class MainActivity : BaseActivity() {
         adRequest = AdRequest.Builder().build()
 
         updateAdVisibility()
+        loadRecommendations(email)
     }
 
     override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?) {
@@ -108,20 +115,20 @@ class MainActivity : BaseActivity() {
         if (requestCode == 1 && resultCode == RESULT_OK) {
             val user = dbHelper.getUserById(userId)
             val email = user?.email ?: ""
-            loadNews(email)
-            Log.d("MainActivity", "Filter updated, reloading news for email: $email")
+            loadRecommendations(email)
+            Log.d("RecommendActivity", "Filter updated, reloading recommendations for email: $email")
         }
     }
 
     override fun onResume() {
         super.onResume()
         adView.resume()
-        findViewById<BottomNavigationView>(R.id.bottomNavigation)?.selectedItemId = R.id.navigation_home
+        findViewById<BottomNavigationView>(R.id.bottomNavigation)?.selectedItemId = R.id.navigation_recommend
         val user = dbHelper.getUserById(userId)
         val email = user?.email ?: ""
         val currentLanguage = sharedPref.getString("app_language", "ru")
         if (currentLanguage != lastLanguage) {
-            Log.d("MainActivity", "Language changed from $lastLanguage to $currentLanguage, recreating activity")
+            Log.d("RecommendActivity", "Language changed from $lastLanguage to $currentLanguage, recreating activity")
             lastLanguage = currentLanguage
             recreate()
         } else {
@@ -138,6 +145,7 @@ class MainActivity : BaseActivity() {
     override fun onDestroy() {
         adView.destroy()
         handler.removeCallbacks(showAdRunnable)
+        recommendationJob?.cancel()
         super.onDestroy()
     }
 
@@ -146,7 +154,10 @@ class MainActivity : BaseActivity() {
         bottomNavigation.setOnNavigationItemSelectedListener { item ->
             when (item.itemId) {
                 R.id.navigation_home -> {
-                    loadNews(dbHelper.getUserById(userId)?.email ?: "")
+                    startActivity(Intent(this, MainActivity::class.java).apply {
+                        putExtra("USER_ID", userId)
+                    })
+                    applyTransition()
                     true
                 }
                 R.id.navigation_saved -> {
@@ -156,13 +167,7 @@ class MainActivity : BaseActivity() {
                     applyTransition()
                     true
                 }
-                R.id.navigation_recommend -> {
-                    startActivity(Intent(this, RecommendActivity::class.java).apply {
-                        putExtra("USER_ID", userId)
-                    })
-                    applyTransition()
-                    true
-                }
+                R.id.navigation_recommend -> true
                 R.id.navigation_profile -> {
                     startActivity(Intent(this, ProfileActivity::class.java).apply {
                         putExtra("USER_ID", userId)
@@ -173,11 +178,79 @@ class MainActivity : BaseActivity() {
                 else -> false
             }
         }
-        bottomNavigation.selectedItemId = R.id.navigation_home
+        bottomNavigation.selectedItemId = R.id.navigation_recommend
     }
 
-    private fun loadNews(email: String) {
-        NewsLoader.loadNews(this, newsAdapter, email)
+    private fun loadRecommendations(email: String) {
+        if (isLoadingRecommendations) {
+            Log.d("RecommendActivity", "loadRecommendations skipped, already in progress")
+            return
+        }
+        isLoadingRecommendations = true
+        recommendationJob?.cancel()
+        recommendationJob = CoroutineScope(Dispatchers.IO).launch {
+            try {
+                val savedNewsList = mutableListOf<SavedNews>()
+                val categories = listOf("general", "business", "entertainment", "health", "science", "sports", "technology")
+                categories.forEach { category ->
+                    savedNewsList.addAll(dbHelper.getSavedNewsByCategory(email, category))
+                }
+
+                val requestMap = mapOf(
+                    "saved_news" to savedNewsList
+                )
+                val requestBodyJson = Gson().toJson(requestMap)
+                Log.d("RecommendActivity", "Request JSON: $requestBodyJson")
+
+                val client = OkHttpClient.Builder()
+                    .connectTimeout(60, TimeUnit.SECONDS)
+                    .readTimeout(60, TimeUnit.SECONDS)
+                    .writeTimeout(60, TimeUnit.SECONDS)
+                    .build()
+                val request = Request.Builder()
+                    .url("http://192.168.100.45:8000/recommend")
+                    .post(requestBodyJson.toRequestBody("application/json".toMediaTypeOrNull()))
+                    .build()
+
+                val response = client.newCall(request).execute()
+                if (response.isSuccessful) {
+                    val responseBody = response.body?.string()
+                    val type = object : TypeToken<List<News>>() {}.type
+                    val recommendedNews: List<News> = Gson().fromJson(responseBody, type)
+
+                    withContext(Dispatchers.Main) {
+                        if (recommendedNews.isNotEmpty()) {
+                            newsAdapter.setNews(recommendedNews)
+                        } else {
+                            showCustomDialog(
+                                getString(R.string.error_title),
+                                getString(R.string.error_no_recommendations)
+                            )
+                        }
+                    }
+                } else {
+                    withContext(Dispatchers.Main) {
+                        showCustomDialog(
+                            getString(R.string.error_title),
+                            getString(R.string.error_server_request_failed)
+                        )
+                    }
+                }
+            } catch (e: Exception) {
+                withContext(Dispatchers.Main) {
+                    Log.e("RecommendActivity", "Error: ${e.message}", e)
+                    showCustomDialog(
+                        getString(R.string.error_title),
+                        getString(R.string.error_loading_recommendations)
+                    )
+                }
+            } finally {
+                withContext(Dispatchers.Main) {
+                    isLoadingRecommendations = false
+                    recommendationJob = null
+                }
+            }
+        }
     }
 
     private fun applyTransition() {
@@ -219,14 +292,32 @@ class MainActivity : BaseActivity() {
     }
 
     private fun refreshUI(email: String) {
-        loadNews(email)
-        supportActionBar?.title = getString(R.string.app_name)
+        loadRecommendations(email)
+        supportActionBar?.title = getString(R.string.recommend)
         findViewById<BottomNavigationView>(R.id.bottomNavigation)?.menu?.apply {
             findItem(R.id.navigation_home)?.title = getString(R.string.home)
             findItem(R.id.navigation_saved)?.title = getString(R.string.saved)
             findItem(R.id.navigation_recommend)?.title = getString(R.string.recommend)
             findItem(R.id.navigation_profile)?.title = getString(R.string.profile)
         }
-        Log.d("MainActivity", "UI refreshed with language: ${sharedPref.getString("app_language", "ru")}")
+        Log.d("RecommendActivity", "UI refreshed with language: ${sharedPref.getString("app_language", "ru")}")
+    }
+
+    private fun showCustomDialog(title: String, message: String) {
+        val dialogView = android.view.LayoutInflater.from(this).inflate(R.layout.custom_dialog_error, null)
+        val dialogBuilder = androidx.appcompat.app.AlertDialog.Builder(this)
+            .setView(dialogView)
+            .setCancelable(true)
+
+        val dialog = dialogBuilder.create()
+        dialog.window?.setBackgroundDrawableResource(android.R.color.transparent)
+
+        dialogView.findViewById<androidx.appcompat.widget.AppCompatTextView>(R.id.tvMessage)?.text = title
+        dialogView.findViewById<androidx.appcompat.widget.AppCompatTextView>(R.id.tvDescription)?.text = message
+        dialogView.findViewById<com.google.android.material.button.MaterialButton>(R.id.btnOk)?.setOnClickListener {
+            dialog.dismiss()
+        }
+
+        dialog.show()
     }
 }

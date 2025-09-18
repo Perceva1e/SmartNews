@@ -81,7 +81,7 @@ class SavedNewsActivity : BaseActivity() {
 
     private fun refreshCategoryButtons() {
         val categoryContainer = findViewById<LinearLayout>(R.id.categoryContainer)
-        categoryContainer.removeAllViews() // Clear existing buttons
+        categoryContainer.removeAllViews()
 
         for (categoryKey in orderedCategories) {
             categoriesMap[categoryKey]?.let { categoryResId ->
@@ -97,7 +97,7 @@ class SavedNewsActivity : BaseActivity() {
                 categoryContainer.addView(button)
             }
         }
-        supportActionBar?.title = getString(R.string.save_news) // Update action bar title
+        supportActionBar?.title = getString(R.string.save_news)
         Log.d("SavedNewsActivity", "refreshCategoryButtons: Updated with language ${sharedPref.getString("app_language", "ru")}")
     }
 
@@ -113,7 +113,13 @@ class SavedNewsActivity : BaseActivity() {
                     true
                 }
                 R.id.navigation_saved -> true
-                R.id.navigation_recommend -> true
+                R.id.navigation_recommend -> {
+                    startActivity(Intent(this, RecommendActivity::class.java).apply {
+                        putExtra("USER_ID", userId)
+                    })
+                    applyTransition()
+                    true
+                }
                 R.id.navigation_profile -> {
                     startActivity(Intent(this, ProfileActivity::class.java).apply {
                         putExtra("USER_ID", userId)

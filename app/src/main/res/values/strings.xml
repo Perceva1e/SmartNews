@@ -135,4 +135,7 @@
     <string name="send_reset_email">Send Reset Email</string>
     <string name="reset_password_icon">Reset Password Icon</string>
     <string name="error_email_not_found">No account found with this email address.</string>
+    <string name="error_no_recommendations">No recommendations available.</string>
+    <string name="error_server_request_failed">Failed to connect to the server.</string>
+    <string name="error_loading_recommendations">Error loading recommendations. Please try again.</string>
 </resources>

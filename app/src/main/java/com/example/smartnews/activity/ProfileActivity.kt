@@ -166,7 +166,13 @@ class ProfileActivity : BaseActivity() {
                     true
                 }
 
-                R.id.navigation_recommend -> true
+                R.id.navigation_recommend -> {
+                    startActivity(Intent(this, RecommendActivity::class.java).apply {
+                        putExtra("USER_ID", userId)
+                    })
+                    applyTransition()
+                    true
+                }
                 R.id.navigation_profile -> true
                 else -> false
             }
