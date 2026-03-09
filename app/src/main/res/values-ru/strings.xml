@@ -88,9 +88,6 @@
     <string name="delete_news">Удалить новостную статью</string>
     <string name="news_deleted_success">Новости успешно удалены</string>
     <string name="news_delete_failed">Не удалось удалить новость</string>
-    <string name="mood_happy">счастливое</string>
-    <string name="mood_sad">грустное</string>
-    <string name="mood_neutral">нетральное</string>
     <string name="mood">Настроение:</string>
     <string name="mood_happy_desc">Иконка счастливого настроения</string>
     <string name="mood_sad_desc">Иконка грустного настроения</string>
@@ -138,4 +135,18 @@
     <string name="error_no_recommendations">Нет доступных рекомендаций.</string>
     <string name="error_server_request_failed">Не удалось подключиться к серверу.</string>
     <string name="error_loading_recommendations">Ошибка загрузки рекомендаций. Пожалуйста, попробуйте снова.</string>
+    <string name="logout">Выйти из аккаунта</string>
+    <string name="filter_date_from">От</string>
+    <string name="filter_date_to">До</string>
+    <string name="mood_all">Все</string>
+    <string name="mood_happy">Счастливый</string>
+    <string name="mood_sad">Грустный</string>
+    <string name="mood_neutral">Нейтральный</string>
+    <string name="mood_title">Настроение</string>
+    <string-array name="moods">
+        <item>@string/mood_all</item>
+        <item>@string/mood_happy</item>
+        <item>@string/mood_sad</item>
+        <item>@string/mood_neutral</item>
+    </string-array>
 </resources>

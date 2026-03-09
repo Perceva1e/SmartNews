@@ -40,6 +40,18 @@ class LoginActivity : BaseActivity() {
 
         FirebaseApp.initializeApp(this)
         auth = FirebaseAuth.getInstance()
+        localDb = DatabaseHelper(this)
+
+        val savedUserId = sharedPref.getInt("SAVED_USER_ID", -1)
+        if (savedUserId != -1) {
+            startActivity(Intent(this, MainActivity::class.java).apply {
+                putExtra("USER_ID", savedUserId)
+            })
+            finish()
+            super.onCreate(savedInstanceState)
+            return
+        }
+
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_login)
 
@@ -47,7 +59,6 @@ class LoginActivity : BaseActivity() {
         etPassword = findViewById(R.id.etPassword)
         btnLogin = findViewById(R.id.btnLogin)
         btnGoToRegister = findViewById(R.id.btnGoToRegister)
-        localDb = DatabaseHelper(this)
 
         etPassword.setCompoundDrawablesWithIntrinsicBounds(R.drawable.ic_lock, 0, R.drawable.ic_eye_off, 0)
         etPassword.setOnTouchListener { _, event ->
@@ -109,6 +120,11 @@ class LoginActivity : BaseActivity() {
                                 }
                             }
                             syncSavedNewsFromFirestore(email)
+
+                            val editor = sharedPref.edit()
+                            editor.putInt("SAVED_USER_ID", user!!.id)
+                            editor.apply()
+
                             showCustomDialog(getString(R.string.success_title), getString(R.string.success_login), R.layout.custom_dialog_success) {
                                 startActivity(Intent(this@LoginActivity, MainActivity::class.java).apply {
                                     putExtra("USER_ID", user!!.id)
@@ -152,7 +168,7 @@ class LoginActivity : BaseActivity() {
                 .await()
             for (document in querySnapshot.documents) {
                 val news = SavedNews(
-                    id = document.id.split("-").last().toInt(),
+                    id = document.id.split("-").last().toIntOrNull() ?: 0,
                     title = document.getString("title"),
                     description = document.getString("description"),
                     url = document.getString("url"),

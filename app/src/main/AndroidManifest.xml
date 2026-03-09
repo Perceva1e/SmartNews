@@ -38,7 +38,7 @@
             android:name=".activity.MainActivity"
             android:exported="false" />
         <activity
-            android:name=".auth.LoginActivity"
+            android:name=".auth.RegisterActivity"
             android:exported="false" />
         <activity
             android:name=".activity.PaymentActivity"
@@ -47,7 +47,7 @@
             android:name=".activity.NewsFilterActivity"
             android:exported="false" />
         <activity
-            android:name=".auth.RegisterActivity"
+            android:name=".auth.LoginActivity"
             android:exported="true">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />

@@ -87,9 +87,6 @@
     <string name="delete_news">Delete news article</string>
     <string name="news_deleted_success">News deleted successfully</string>
     <string name="news_delete_failed">Failed to delete news</string>
-    <string name="mood_happy">happy</string>
-    <string name="mood_sad">sad</string>
-    <string name="mood_neutral">neutral</string>
     <string name="mood">Mood:</string>
     <string name="mood_happy_desc">Happy mood icon</string>
     <string name="mood_sad_desc">Sad mood icon</string>
@@ -138,4 +135,18 @@
     <string name="error_no_recommendations">No recommendations available.</string>
     <string name="error_server_request_failed">Failed to connect to the server.</string>
     <string name="error_loading_recommendations">Error loading recommendations. Please try again.</string>
+    <string name="logout">Log out of your account</string>
+    <string name="filter_date_from">From</string>
+    <string name="filter_date_to">To</string>
+    <string name="mood_all">All</string>
+    <string name="mood_happy">Happy</string>
+    <string name="mood_sad">Sad</string>
+    <string name="mood_neutral">Neutral</string>
+    <string name="mood_title">Mood</string>
+    <string-array name="moods">
+        <item>@string/mood_all</item>
+        <item>@string/mood_happy</item>
+        <item>@string/mood_sad</item>
+        <item>@string/mood_neutral</item>
+    </string-array>
 </resources>

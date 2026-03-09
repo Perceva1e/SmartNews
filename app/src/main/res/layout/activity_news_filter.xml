@@ -70,8 +70,84 @@
             app:layout_constraintStart_toStartOf="@id/guidelineVertical1"
             app:layout_constraintEnd_toEndOf="@id/guidelineVertical2"
             app:layout_constraintTop_toBottomOf="@id/tvFilterTitle"
-            app:layout_constraintBottom_toTopOf="@id/btnSaveFilter"
+            app:layout_constraintBottom_toTopOf="@id/tvDateFrom"
+            android:layout_marginTop="16dp"
+            android:layout_marginBottom="24dp" />
+
+        <TextView
+            android:id="@+id/tvDateFrom"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="@string/filter_date_from"
+            android:textColor="#FFFFFF"
+            android:textSize="16sp"
+            app:layout_constraintStart_toStartOf="@id/guidelineVertical1"
+            app:layout_constraintTop_toBottomOf="@id/rvCategories"
+            android:layout_marginTop="24dp" />
+
+        <EditText
+            android:id="@+id/etDateFrom"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:hint="@string/filter_date_from"
+            android:textColor="#FFFFFF"
+            android:textColorHint="#B3FFFFFF"
+            android:background="@drawable/edittext_border"
+            android:padding="12dp"
+            android:inputType="date"
+            app:layout_constraintStart_toStartOf="@id/guidelineVertical1"
+            app:layout_constraintEnd_toEndOf="@id/guidelineVertical2"
+            app:layout_constraintTop_toBottomOf="@id/tvDateFrom"
+            android:layout_marginTop="8dp" />
+
+        <TextView
+            android:id="@+id/tvDateTo"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="@string/filter_date_to"
+            android:textColor="#FFFFFF"
+            android:textSize="16sp"
+            app:layout_constraintStart_toStartOf="@id/guidelineVertical1"
+            app:layout_constraintTop_toBottomOf="@id/etDateFrom"
             android:layout_marginTop="16dp" />
+
+        <EditText
+            android:id="@+id/etDateTo"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:hint="@string/filter_date_to"
+            android:textColor="#FFFFFF"
+            android:textColorHint="#B3FFFFFF"
+            android:background="@drawable/edittext_border"
+            android:padding="12dp"
+            android:inputType="date"
+            app:layout_constraintStart_toStartOf="@id/guidelineVertical1"
+            app:layout_constraintEnd_toEndOf="@id/guidelineVertical2"
+            app:layout_constraintTop_toBottomOf="@id/tvDateTo"
+            android:layout_marginTop="8dp" />
+
+        <TextView
+            android:id="@+id/tvMood"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="@string/mood_title"
+            android:textColor="#FFFFFF"
+            android:textSize="16sp"
+            app:layout_constraintStart_toStartOf="@id/guidelineVertical1"
+            app:layout_constraintTop_toBottomOf="@id/etDateTo"
+            android:layout_marginTop="16dp" />
+
+        <Spinner
+            android:id="@+id/spMood"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:entries="@array/moods"
+            android:background="@drawable/edittext_border"
+            android:padding="12dp"
+            app:layout_constraintStart_toStartOf="@id/guidelineVertical1"
+            app:layout_constraintEnd_toEndOf="@id/guidelineVertical2"
+            app:layout_constraintTop_toBottomOf="@id/tvMood"
+            android:layout_marginTop="8dp" />
 
         <com.google.android.material.button.MaterialButton
             android:id="@+id/btnSaveFilter"
@@ -84,8 +160,8 @@
             app:icon="@drawable/ic_saved"
             app:layout_constraintStart_toStartOf="@id/guidelineVertical1"
             app:layout_constraintEnd_toEndOf="@id/guidelineVertical2"
-            app:layout_constraintTop_toBottomOf="@id/rvCategories"
-            android:layout_marginTop="16dp" />
+            app:layout_constraintTop_toBottomOf="@id/spMood"
+            android:layout_marginTop="24dp" />
 
         <com.google.android.material.button.MaterialButton
             android:id="@+id/btnClearFilter"

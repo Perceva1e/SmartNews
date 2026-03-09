@@ -21,6 +21,7 @@ import com.google.android.gms.ads.MobileAds
 import com.google.android.material.bottomnavigation.BottomNavigationView
 import java.util.Locale
 import androidx.lifecycle.lifecycleScope
+import com.example.smartnews.auth.LoginActivity
 import com.example.smartnews.auth.RegisterActivity
 import kotlinx.coroutines.launch
 
@@ -69,7 +70,16 @@ class ProfileActivity : BaseActivity() {
         val btnEditCurrency = findViewById<ImageButton>(R.id.btnEditCurrency)
         val btnDeleteAccount = findViewById<Button>(R.id.btnDeleteAccount)
         val btnBuyVip = findViewById<Button>(R.id.btnBuyVip)
-
+        val btnLogout: Button = findViewById(R.id.btnLogout)
+        btnLogout.setOnClickListener {
+            val sharedPref = getSharedPreferences("UserPrefs", MODE_PRIVATE)
+            sharedPref.edit().remove("SAVED_USER_ID").apply()
+            com.google.firebase.auth.FirebaseAuth.getInstance().signOut()
+            val intent = Intent(this, LoginActivity::class.java)
+            intent.flags = Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TASK
+            startActivity(intent)
+            finish()
+        }
         refreshUI()
 
         btnEditName.setOnClickListener { startEditActivity("name") }
