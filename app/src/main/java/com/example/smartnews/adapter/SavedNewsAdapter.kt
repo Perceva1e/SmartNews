@@ -9,7 +9,8 @@ import com.example.smartnews.bd.SavedNews
 class SavedNewsAdapter(
     private var newsList: List<SavedNews>,
     private val email: String,
-    private val listener: OnNewsDeletedListener?
+    private val listener: OnNewsDeletedListener?,
+    private val showDeleteButton: Boolean = true
 ) : RecyclerView.Adapter<SavedNewsViewHolder>() {
 
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): SavedNewsViewHolder {
@@ -19,7 +20,7 @@ class SavedNewsAdapter(
     }
 
     override fun onBindViewHolder(holder: SavedNewsViewHolder, position: Int) {
-        holder.bind(email, newsList[position], listener)
+        holder.bind(email, newsList[position], listener, showDeleteButton)
     }
 
     override fun getItemCount(): Int = newsList.size

@@ -35,9 +35,21 @@ object NewsLoader {
                     ?: listOf("general")
 
                 val sharedPref = context.getSharedPreferences("UserPrefs", Context.MODE_PRIVATE)
+                val language = sharedPref.getString("app_language", "ru") ?: "ru"
+                val country = if (language == "ru") "ru" else "us"
                 var dateFrom = sharedPref.getString("news_date_from", null)
                 var dateTo   = sharedPref.getString("news_date_to", null)
                 val moodFilter = sharedPref.getString("news_mood", null)
+
+                val categoryTranslations = mapOf(
+                    "general" to "общие",
+                    "business" to "бизнес",
+                    "entertainment" to "развлечения",
+                    "health" to "здоровье",
+                    "science" to "наука",
+                    "sports" to "спорт",
+                    "technology" to "технологии"
+                )
 
                 // Проверка дат — если в будущем, сбрасываем на null
                 val today = LocalDate.now()
@@ -72,17 +84,22 @@ object NewsLoader {
 
                 categories.forEach { category ->
                     val response = if (dateFrom != null || dateTo != null) {
-                        Log.d(TAG, "Запрос everything: q=$category, from=$dateFrom, to=$dateTo")
+                        val q = if (language == "ru") categoryTranslations.getOrDefault(category, category) else category
+                        Log.d(TAG, "Запрос everything: q=$q, from=$dateFrom, to=$dateTo")
                         NewsApi.service.getEverything(
-                            q = category,
+                            q = q,
                             from = dateFrom,
                             to = dateTo,
-                            language = "ru",
+                            language = language,
                             pageSize = 100
                         )
                     } else {
-                        Log.d(TAG, "Запрос top-headlines: category=$category")
-                        NewsApi.service.getTopHeadlines(category = category, pageSize = 100)
+                        Log.d(TAG, "Запрос top-headlines: country=$country, category=$category")
+                        NewsApi.service.getTopHeadlines(
+                            country = country,
+                            category = category,
+                            pageSize = 100
+                        )
                     }
                     newsItems.addAll(response.articles.map { it.copy(category = category) })
                 }

@@ -26,7 +26,9 @@ abstract class BaseActivity : AppCompatActivity() {
 
     open fun checkInternetConnection() {
         if (!NetworkUtils.isInternetAvailable(this)) {
-            startActivity(Intent(this, NoInternetActivity::class.java))
+            startActivity(Intent(this, NoInternetActivity::class.java).apply {
+                putExtra("USER_ID", intent.getIntExtra("USER_ID", -1))
+            })
         }
     }
 }

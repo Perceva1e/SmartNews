@@ -18,12 +18,14 @@ class SavedNewsFragment : Fragment() {
     companion object {
         private const val USER_ID = "user_id"
         private const val CATEGORY = "category"
+        private const val IS_OFFLINE = "is_offline"
 
-        fun newInstance(userId: Int, category: String): SavedNewsFragment {
+        fun newInstance(userId: Int, category: String, isOffline: Boolean = false): SavedNewsFragment {
             val fragment = SavedNewsFragment()
             fragment.arguments = Bundle().apply {
                 putInt(USER_ID, userId)
                 putString(CATEGORY, category)
+                putBoolean(IS_OFFLINE, isOffline)
             }
             return fragment
         }
@@ -41,6 +43,7 @@ class SavedNewsFragment : Fragment() {
         super.onViewCreated(view, savedInstanceState)
         val userId = arguments?.getInt(USER_ID) ?: 0
         val category = arguments?.getString(CATEGORY) ?: "general"
+        val isOffline = arguments?.getBoolean(IS_OFFLINE, false) ?: false
 
         val dbHelper = DatabaseHelper(requireContext())
         val user = dbHelper.getUserById(userId)
@@ -53,12 +56,19 @@ class SavedNewsFragment : Fragment() {
         recyclerView.addItemDecoration(SpacingItemDecoration(spacingInPixels))
 
         val newsList = dbHelper.getSavedNewsByCategory(email, category)
-        adapter = SavedNewsAdapter(newsList, email, object : SavedNewsAdapter.OnNewsDeletedListener {
-            override fun onNewsDeleted() {
-                val updatedNewsList = dbHelper.getSavedNewsByCategory(email, category)
-                adapter.setSavedNews(updatedNewsList)
-            }
-        })
+
+        adapter = SavedNewsAdapter(
+            newsList = newsList,
+            email = email,
+            listener = object : SavedNewsAdapter.OnNewsDeletedListener {
+                override fun onNewsDeleted() {
+                    val updatedNewsList = dbHelper.getSavedNewsByCategory(email, category)
+                    adapter.setSavedNews(updatedNewsList)
+                }
+            },
+            showDeleteButton = !isOffline
+        )
+
         recyclerView.adapter = adapter
 
         if (newsList.isEmpty()) {

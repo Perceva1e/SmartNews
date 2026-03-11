@@ -208,7 +208,7 @@ class RecommendActivity : BaseActivity() {
                     .writeTimeout(60, TimeUnit.SECONDS)
                     .build()
                 val request = Request.Builder()
-                    .url("http://192.168.100.45:8000/recommend")
+                    .url("http://192.168.100.5:8000/recommend")
                     .post(requestBodyJson.toRequestBody("application/json".toMediaTypeOrNull()))
                     .build()
 

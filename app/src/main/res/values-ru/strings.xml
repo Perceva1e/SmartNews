@@ -8,7 +8,7 @@
     <string name="register">Зарегистрироваться</string>
     <string name="already_have_an_account_login">Уже есть аккаунт? Войти</string>
     <string name="app_logo">Логотип приложения</string>
-    <string name="saved">Сохранено</string>
+    <string name="saved">Сохранить</string>
     <string name="home">Главная</string>
     <string name="recommend">Рекомендовано</string>
     <string name="profile">Профиль</string>
@@ -143,6 +143,7 @@
     <string name="mood_sad">Грустный</string>
     <string name="mood_neutral">Нейтральный</string>
     <string name="mood_title">Настроение</string>
+    <string name="look_saved_news">Посмотреть сохранённые новости</string>
     <string-array name="moods">
         <item>@string/mood_all</item>
         <item>@string/mood_happy</item>

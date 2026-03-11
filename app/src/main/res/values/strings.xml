@@ -143,6 +143,7 @@
     <string name="mood_sad">Sad</string>
     <string name="mood_neutral">Neutral</string>
     <string name="mood_title">Mood</string>
+    <string name="look_saved_news">View saved news</string>
     <string-array name="moods">
         <item>@string/mood_all</item>
         <item>@string/mood_happy</item>

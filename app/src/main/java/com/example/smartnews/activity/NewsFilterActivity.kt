@@ -72,7 +72,6 @@ class NewsFilterActivity : BaseActivity() {
         moodAdapter.setDropDownViewResource(R.layout.spinner_dropdown_item)
         spMood.adapter = moodAdapter
 
-        // Загрузка текущих значений
         etDateFrom.setText(sharedPref.getString("news_date_from", ""))
         etDateTo.setText(sharedPref.getString("news_date_to", ""))
         val currentMood = sharedPref.getString("news_mood", getString(R.string.mood_all)) ?: getString(R.string.mood_all)
@@ -98,7 +97,6 @@ class NewsFilterActivity : BaseActivity() {
 
             Log.d(TAG, "Сохранение фильтров: cat=$categoriesToSave, from=$dateFrom, to=$dateTo, mood=$mood")
 
-            // Сохраняем SharedPreferences сразу
             sharedPref.edit().apply {
                 putString("news_date_from", dateFrom)
                 putString("news_date_to", dateTo)
@@ -121,12 +119,10 @@ class NewsFilterActivity : BaseActivity() {
                         Log.d(TAG, "Категории успешно обновлены в БД")
                     } catch (e: Exception) {
                         Log.e(TAG, "Ошибка обновления категорий: ${e.message}", e)
-                        // Не блокируем UI — просто лог
                     }
                 }
             }
 
-            // Показываем успех и сразу закрываем
             showCustomDialog(
                 getString(R.string.success_title),
                 getString(R.string.filter_saved),
