@@ -38,7 +38,7 @@ object NewsLoader {
                 val language = sharedPref.getString("app_language", "ru") ?: "ru"
                 val country = if (language == "ru") "ru" else "us"
                 var dateFrom = sharedPref.getString("news_date_from", null)
-                var dateTo   = sharedPref.getString("news_date_to", null)
+                var dateTo = sharedPref.getString("news_date_to", null)
                 val moodFilter = sharedPref.getString("news_mood", null)
 
                 val categoryTranslations = mapOf(
@@ -51,7 +51,6 @@ object NewsLoader {
                     "technology" to "технологии"
                 )
 
-                // Проверка дат — если в будущем, сбрасываем на null
                 val today = LocalDate.now()
                 if (dateFrom != null) {
                     try {
@@ -83,25 +82,28 @@ object NewsLoader {
                 val newsItems = mutableListOf<News>()
 
                 categories.forEach { category ->
-                    val response = if (dateFrom != null || dateTo != null) {
+                    val useEverything = (dateFrom != null || dateTo != null) || language == "ru"
+
+                    if (useEverything) {
                         val q = if (language == "ru") categoryTranslations.getOrDefault(category, category) else category
-                        Log.d(TAG, "Запрос everything: q=$q, from=$dateFrom, to=$dateTo")
-                        NewsApi.service.getEverything(
+                        Log.d(TAG, "Запрос everything: q=$q, from=$dateFrom, to=$dateTo (язык=$language)")
+                        val response = NewsApi.service.getEverything(
                             q = q,
                             from = dateFrom,
                             to = dateTo,
                             language = language,
                             pageSize = 100
                         )
+                        newsItems.addAll(response.articles.map { it.copy(category = category) })
                     } else {
                         Log.d(TAG, "Запрос top-headlines: country=$country, category=$category")
-                        NewsApi.service.getTopHeadlines(
+                        val response = NewsApi.service.getTopHeadlines(
                             country = country,
                             category = category,
                             pageSize = 100
                         )
+                        newsItems.addAll(response.articles.map { it.copy(category = category) })
                     }
-                    newsItems.addAll(response.articles.map { it.copy(category = category) })
                 }
 
                 var filteredNews = newsItems.distinctBy { it.title }
